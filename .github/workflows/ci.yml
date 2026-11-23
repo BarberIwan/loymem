@@ -1,0 +1,76 @@
+name: ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  backend:
+    if: github.event.pull_request.draft != true
+    # Own runner on the shared CI server, one job at a time (docs/ci.md).
+    runs-on: [self-hosted, loymem-ci]
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Random host port: other runners on this server use their own Postgres.
+        ports: ["5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: Database roles
+        run: |
+          P="docker exec ${{ job.services.postgres.id }} psql -U postgres -q"
+          $P -c "create role loymem_owner login password 'loymem_owner' bypassrls; create role loymem_app login password 'loymem_app';"
+          $P -c "create database loymem_test owner loymem_owner;"
+          $P -d loymem_test -c "alter schema public owner to loymem_owner; grant usage on schema public to loymem_app;"
+      - name: Lint and types
+        working-directory: backend
+        run: |
+          ruff check app tests scripts
+          ruff format --check app tests scripts
+          mypy app
+      - name: Tests
+        working-directory: backend
+        env:
+          LOYMEM_TEST_DB_HOST: localhost:${{ job.services.postgres.ports['5432'] }}
+        run: pytest -q
+
+  frontend:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run type-check
+      - run: pnpm run lint
+      - run: pnpm run build
