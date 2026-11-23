@@ -209,13 +209,13 @@ function RedeemFlow() {
         void redeem(code);
       }}
     >
-      <span className={s.resultTitle}>{t("redeemTitle")}</span>
+      <span className={s.resultTitle} id="redeem-title">
+        {t("redeemTitle")}
+      </span>
       <span className={s.meta}>{t("redeemHint")}</span>
-      <label className="visually-hidden" htmlFor="code">
-        {t("code")}
-      </label>
       <input
         id="code"
+        aria-labelledby="redeem-title"
         className={s.codeInput}
         inputMode="numeric"
         autoComplete="one-time-code"
@@ -304,9 +304,9 @@ function Camera({ onCode }: { onCode: (v: string) => void }) {
 
   return (
     <>
-      <div className={s.viewport}>
+      <div className={s.viewport} hidden={state === "off"}>
         <video ref={video} muted playsInline aria-hidden />
-        {state !== "off" && <div className={s.frame} />}
+        <div className={s.frame} />
       </div>
       <p className={s.hint}>{state === "off" ? t("noCamera") : t("aim")}</p>
     </>

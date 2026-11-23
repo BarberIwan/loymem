@@ -70,7 +70,8 @@
 .input {
   width: 100%;
   min-width: 0;
-  min-height: var(--hit);
+  min-height: var(--hit-large);
+  font-size: var(--text-lg);
   padding: 0 var(--space-4);
   border: var(--hairline) solid var(--night-line);
   border-radius: var(--radius-sm);
@@ -93,7 +94,7 @@
 }
 
 .ghost {
-  min-height: var(--hit);
+  min-height: var(--hit-large);
   padding: 0 var(--space-4);
   border: var(--hairline) solid var(--night-line);
   border-radius: var(--radius-sm);
@@ -120,7 +121,12 @@
 }
 
 .primary:disabled {
-  opacity: 0.5;
+  background: var(--night-line);
+  color: var(--night-ink-2);
+}
+
+.input::placeholder {
+  color: var(--night-ink-2);
 }
 
 .person {
@@ -217,4 +223,8 @@
 .tab[aria-selected="true"] {
   color: var(--night-ink);
   box-shadow: inset 0 var(--focus-ring) 0 var(--night-ink);
+}
+
+.viewport[hidden] {
+  display: none;
 }

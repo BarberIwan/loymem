@@ -27,7 +27,9 @@
 }
 
 .button:disabled {
-  opacity: 0.5;
+  background: var(--line);
+  border-color: var(--line);
+  color: var(--ink-2);
   cursor: default;
   transform: none;
 }
@@ -163,6 +165,10 @@
   font-size: var(--text-sm);
   line-height: var(--lh-sm);
   color: var(--ink-2);
+}
+
+.stat:first-child .statNote {
+  color: var(--accent);
 }
 
 .empty {

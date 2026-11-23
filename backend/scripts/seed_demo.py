@@ -52,7 +52,7 @@ def main() -> None:
             id=uuid.uuid4(),
             slug="barber-iwan",
             name="Barber Iwan",
-            brand_colour="#20201E",
+            brand_colour="#6B2E26",
             booking_url="https://barberiwan.nl",
         )
         db.add(b)

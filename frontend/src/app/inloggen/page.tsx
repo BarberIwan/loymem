@@ -35,7 +35,7 @@ export default function LoginPage() {
     <main className={styles.page}>
       <div className={styles.column}>
         <Wordmark />
-        <h1 className={styles.lead}>{t("title")}</h1>
+        <h1 className={styles.title}>{t("title")}</h1>
         <form className={styles.form} action={submit}>
           <Field name="email" type="email" label={t("email")} autoComplete="username" required />
           <Field name="password" type="password" label={t("password")} autoComplete="current-password" required />
@@ -44,6 +44,7 @@ export default function LoginPage() {
             {t("submit")}
           </Button>
         </form>
+        <p className={styles.muted}>{t("forgot")}</p>
       </div>
     </main>
   );

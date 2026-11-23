@@ -43,7 +43,8 @@
     "consent": "Stuur me af en toe een bericht van {business}.",
     "consentHint": "Zet je dit later uit, dan houd je gewoon je stempels.",
     "submit": "Maak mijn kaart",
-    "privacy": "{business} gebruikt je gegevens alleen voor deze kaart."
+    "privacy": "{business} gebruikt je gegevens alleen voor deze kaart.",
+    "months": "januari,februari,maart,april,mei,juni,juli,augustus,september,oktober,november,december"
   },
   "card": {
     "progress": "{count} van {total}",
@@ -51,17 +52,14 @@
     "rewardReady": "Klaar om in te wisselen",
     "showCode": "Toon code",
     "codeHint": "Laat deze code zien aan de balie.",
-    "codeSeconds": "Nog {seconds} sec",
     "codeExpired": "Code verlopen",
     "newCode": "Nieuwe code",
     "scanHint": "Laat deze code scannen bij je bezoek.",
     "book": "Afspraak maken",
     "saveTip": "Zet deze pagina op je beginscherm. Dan heb je je kaart altijd bij je.",
     "messages": "Berichten van {business}",
-    "messagesOn": "Aan",
-    "messagesOff": "Uit",
-    "lost": "Andere telefoon of kaart kwijt?",
-    "lostLink": "Vraag een nieuwe link"
+    "lostLink": "Nieuwe link aanvragen",
+    "codeLeft": "Nog {time}."
   },
   "lost": {
     "title": "Nieuwe link voor je kaart",
@@ -78,7 +76,8 @@
     "title": "Inloggen",
     "email": "E-mail",
     "password": "Wachtwoord",
-    "submit": "Inloggen"
+    "submit": "Inloggen",
+    "forgot": "Wachtwoord vergeten? Vraag de eigenaar van de zaak om een nieuw wachtwoord."
   },
   "nav": {
     "scan": "Scannen",
@@ -90,7 +89,7 @@
     "aim": "Richt de camera op de code van de klant.",
     "noCamera": "Geen camera. Typ de code die onder de QR op de kaart staat.",
     "manual": "Code van de kaart",
-    "lookup": "Zoek",
+    "lookup": "Open kaart",
     "stamp": "Stempel zetten",
     "stamped": "Gestempeld",
     "stampedBody": "{name} heeft er nu {count} van {total}.",
@@ -117,7 +116,7 @@
     "stamps": "Stempels",
     "redeemed": "Ingewisseld",
     "open": "{count, plural, one {# staat nog open} other {# staan nog open}}",
-    "due": "Toe aan bezoek",
+    "due": "Al even niet geweest",
     "dueHint": "Geen bezoek geregistreerd binnen hun terugkeerperiode.",
     "signals": "Opvallend",
     "many_stamps_one_staff": "{staff} zette {count} stempels in het laatste uur.",
@@ -139,7 +138,9 @@
     "export": "Alles downloaden",
     "import": "Klanten importeren",
     "importHint": "CSV met kolommen voornaam, telefoon en email. Geïmporteerde klanten krijgen geen berichten tot ze zelf ja zeggen.",
-    "importDone": "{added} toegevoegd, {skipped} overgeslagen."
+    "importDone": "{added} toegevoegd, {skipped} overgeslagen.",
+    "stampsNote": "Bezoeken met een stempel",
+    "more": "Meer tonen"
   },
   "settings": {
     "title": "Instellingen",
@@ -162,6 +163,8 @@
     "servicesEmpty": "Nog geen behandelingen. Voorbeeld: Knippen, 28 dagen.",
     "signupTitle": "Aanmeldcode",
     "signupHint": "Print deze code en zet hem bij de kassa. Klanten scannen hem en hebben hun kaart in een halve minuut.",
-    "print": "Afdrukken"
+    "print": "Afdrukken",
+    "daysValue": "{count, plural, one {# dag} other {# dagen}}",
+    "custom": "Eigen kleur"
   }
 }

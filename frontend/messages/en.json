@@ -43,7 +43,8 @@
     "consent": "Send me the occasional message from {business}.",
     "consentHint": "Turn this off later and you keep your stamps.",
     "submit": "Make my card",
-    "privacy": "{business} only uses your details for this card."
+    "privacy": "{business} only uses your details for this card.",
+    "months": "January,February,March,April,May,June,July,August,September,October,November,December"
   },
   "card": {
     "progress": "{count} of {total}",
@@ -51,17 +52,14 @@
     "rewardReady": "Ready to redeem",
     "showCode": "Show code",
     "codeHint": "Show this code at the counter.",
-    "codeSeconds": "{seconds} sec left",
     "codeExpired": "Code expired",
     "newCode": "New code",
     "scanHint": "Have this code scanned at your visit.",
     "book": "Book a visit",
     "saveTip": "Add this page to your home screen. Then your card is always with you.",
     "messages": "Messages from {business}",
-    "messagesOn": "On",
-    "messagesOff": "Off",
-    "lost": "New phone or lost your card?",
-    "lostLink": "Ask for a new link"
+    "lostLink": "Ask for a new link",
+    "codeLeft": "{time} left."
   },
   "lost": {
     "title": "A new link for your card",
@@ -78,7 +76,8 @@
     "title": "Sign in",
     "email": "Email",
     "password": "Password",
-    "submit": "Sign in"
+    "submit": "Sign in",
+    "forgot": "Forgot your password? Ask the owner of the business for a new one."
   },
   "nav": {
     "scan": "Scan",
@@ -90,7 +89,7 @@
     "aim": "Point the camera at the customer's code.",
     "noCamera": "No camera. Type the code shown under the QR.",
     "manual": "Card code",
-    "lookup": "Find",
+    "lookup": "Open card",
     "stamp": "Add stamp",
     "stamped": "Stamped",
     "stampedBody": "{name} now has {count} of {total}.",
@@ -117,7 +116,7 @@
     "stamps": "Stamps",
     "redeemed": "Redeemed",
     "open": "{count} still open",
-    "due": "Due for a visit",
+    "due": "Not seen in a while",
     "dueHint": "No visit registered within their return period.",
     "signals": "Worth a look",
     "many_stamps_one_staff": "{staff} gave {count} stamps in the last hour.",
@@ -139,7 +138,9 @@
     "export": "Download everything",
     "import": "Import customers",
     "importHint": "CSV with columns first_name, phone and email. Imported customers get no messages until they say yes themselves.",
-    "importDone": "{added} added, {skipped} skipped."
+    "importDone": "{added} added, {skipped} skipped.",
+    "stampsNote": "Visits with a stamp",
+    "more": "Show more"
   },
   "settings": {
     "title": "Settings",
@@ -162,6 +163,8 @@
     "servicesEmpty": "No services yet. Example: Haircut, 28 days.",
     "signupTitle": "Signup code",
     "signupHint": "Print this code and put it by the till. Customers scan it and have their card in half a minute.",
-    "print": "Print"
+    "print": "Print",
+    "daysValue": "{count, plural, one {# day} other {# days}}",
+    "custom": "Own colour"
   }
 }

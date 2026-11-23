@@ -13,6 +13,9 @@ import { useErrorText } from "@/lib/useErrorText";
 import shell from "../shell.module.css";
 import w from "../werk.module.css";
 
+// Starting points that look good on a card; any other colour stays possible.
+const SWATCHES = ["#1F4A38", "#20201E", "#6B2E26", "#2B3A55", "#8A6A3B", "#B8A99A", "#E8D9C4", "#4A3B52"];
+
 type Settings = {
   name: string;
   slug: string;
@@ -93,8 +96,22 @@ export default function SettingsPage() {
                 <label className={w.colourLabel} htmlFor="colour-hex">
                   {t("colour")}
                 </label>
+                <div className={w.swatches} role="radiogroup" aria-label={t("colour")}>
+                  {SWATCHES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      role="radio"
+                      aria-checked={v.brand_colour.toUpperCase() === c}
+                      aria-label={c}
+                      className={w.swatchButton}
+                      style={{ "--swatch": c } as React.CSSProperties}
+                      onClick={() => setDraft((d) => ({ ...d, brand_colour: c }))}
+                    />
+                  ))}
+                </div>
                 <div className={w.colourRow}>
-                  <input type="color" className={w.swatch} aria-label={t("colour")} value={v.brand_colour} onChange={set("brand_colour")} />
+                  <input type="color" className={w.swatch} aria-label={t("custom")} value={v.brand_colour} onChange={set("brand_colour")} />
                   <input id="colour-hex" className={uiStyles.input} value={v.brand_colour} onChange={set("brand_colour")} pattern="#[0-9A-Fa-f]{6}" aria-describedby="colour-hint" />
                 </div>
                 <p id="colour-hint" className={w.muted}>
@@ -109,14 +126,14 @@ export default function SettingsPage() {
               <Field label={t("stampsRequired")} type="number" min={2} max={30} value={v.stamps_required} onChange={set("stamps_required")} />
               <Field label={t("reward")} value={v.reward_description} onChange={set("reward_description")} />
               <Field label={t("booking")} type="url" value={v.booking_url ?? ""} onChange={set("booking_url")} help={t("bookingHint")} placeholder="https://" />
+              <div className={w.actions}>
+                <Button type="button" onClick={save} disabled={Object.keys(draft).length === 0}>
+                  {common("save")}
+                </Button>
+                {status && <Notice tone={status.tone}>{status.text}</Notice>}
+              </div>
             </div>
           </Panel>
-          <div className={w.actions}>
-            <Button type="button" onClick={save} disabled={Object.keys(draft).length === 0}>
-              {common("save")}
-            </Button>
-            {status && <Notice tone={status.tone}>{status.text}</Notice>}
-          </div>
           <Panel title={t("servicesTitle")}>
             <div className={w.stack}>
               <p className={w.muted}>{t("servicesHint")}</p>
@@ -127,7 +144,7 @@ export default function SettingsPage() {
                   {data.services.map((sv) => (
                     <li key={sv.id} className={w.item}>
                       <span className={w.what}>{sv.name}</span>
-                      <span className={w.when}>{sv.return_period_days}</span>
+                      <span className={w.when}>{t("daysValue", { count: sv.return_period_days })}</span>
                     </li>
                   ))}
                 </ul>
@@ -142,7 +159,7 @@ export default function SettingsPage() {
             </div>
           </Panel>
           <Panel title={t("signupTitle")}>
-            <div className={w.stack} id="aanmelden">
+            <div className={`${w.stack} ${w.centre}`} id="aanmelden">
               <p className={w.muted}>{t("signupHint")}</p>
               <div className={w.qrBox}>
                 <Qr value={data.signup_url} label={data.signup_url} />

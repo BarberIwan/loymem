@@ -29,6 +29,7 @@ export default function OverviewPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(() => {
     api<Overview>("/overview").then(setData).catch((e) => setError(errorText(e)));
@@ -59,7 +60,7 @@ export default function OverviewPage() {
         <>
           <div className={w.stats}>
             <Stat label={t("customers")} value={data.customers} note={t("newCustomers", { count: data.new_customers_30d })} />
-            <Stat label={t("stamps")} value={data.stamps_30d} />
+            <Stat label={t("stamps")} value={data.stamps_30d} note={t("stampsNote")} />
             <Stat label={t("redeemed")} value={data.rewards_redeemed_30d} note={t("open", { count: data.rewards_open })} />
             <Stat label={t("due")} value={data.due_for_visit} note={t("dueHint")} />
           </div>
@@ -84,10 +85,15 @@ export default function OverviewPage() {
               />
             ) : (
               <ul className={w.list}>
-                {data.recent.map((ev) => (
+                {data.recent.slice(0, showAll ? undefined : 10).map((ev) => (
                   <Row key={ev.id} ev={ev} onChanged={load} onError={(e) => setError(errorText(e))} />
                 ))}
               </ul>
+            )}
+            {!showAll && data.recent.length > 10 && (
+              <button type="button" className={w.textButton} onClick={() => setShowAll(true)}>
+                {t("more")}
+              </button>
             )}
           </Panel>
           <div className={w.actions}>

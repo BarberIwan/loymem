@@ -43,13 +43,13 @@
 }
 
 .when {
-  font-variant-numeric: tabular-nums;
   color: var(--ink-3);
   font-size: var(--text-sm);
 }
 
 .textButton {
   min-height: var(--hit);
+  min-width: var(--hit);
   padding: 0 0 0 var(--space-3);
   border: 0;
   background: none;
@@ -169,4 +169,28 @@
   .noPrint {
     display: none;
   }
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.swatchButton {
+  width: var(--hit);
+  height: var(--hit);
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-round);
+  background: var(--swatch);
+  cursor: pointer;
+}
+
+.swatchButton[aria-checked="true"] {
+  box-shadow: 0 0 0 var(--focus-ring) var(--paper), 0 0 0 calc(2 * var(--focus-ring)) var(--ink);
+}
+
+.centre {
+  justify-items: center;
+  text-align: center;
 }
