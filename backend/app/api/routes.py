@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import uuid
 import zipfile
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
@@ -24,15 +25,18 @@ from app.db import get_db, set_tenant
 from app.models import (
     Business,
     ConsentPurpose,
+    Customer,
     CustomerSource,
     InboxDecision,
     Program,
     Role,
     Service,
+    SlotBenefit,
+    SlotStatus,
     StaffMember,
 )
 from app.security import hash_password, issue_session, verify_password
-from app.services import DomainError, audit, cards, inbox, ledger, owner, webhooks
+from app.services import DomainError, audit, cards, inbox, ledger, owner, slots, webhooks
 from app.services.brand import card_palette
 from app.services.cards import StaffContext, scan_token_for
 from app.services.rhythm import visit_statuses
@@ -111,6 +115,16 @@ def card(slug: str, secret: str, db: Db) -> dict[str, object]:
         **cards.card_view(db, b, customer),
         "scan_token": scan_token_for(customer),
         "marketing": owner.has_consent(db, customer.id, ConsentPurpose.MARKETING),
+        "has_email": bool(customer.email),
+        "waitlist": slots.waitlist_view(db, customer),
+        "services": [
+            {"id": str(s.id), "name": s.name}
+            for s in db.scalars(
+                select(Service)
+                .where(Service.business_id == b.id, Service.active.is_(True))
+                .order_by(Service.name)
+            )
+        ],
     }
 
 
@@ -220,6 +234,7 @@ def scan(body: ScanIn, ctx: Staff, db: Db) -> dict[str, object]:
     )
     return {
         **cards.scan_summary(db, ctx, customer),
+        "claimed_offer": slots.pending_claim(db, ctx, customer),
         "services": [{"id": str(s.id), "name": s.name} for s in services],
     }
 
@@ -231,7 +246,13 @@ class StampIn(BaseModel):
 
 @api.post("/stamps")
 def add_stamp(body: StampIn, ctx: Staff, db: Db) -> dict[str, object]:
-    return cards.stamp(db, ctx, body.customer_id, body.service_id)
+    result = cards.stamp(db, ctx, body.customer_id, body.service_id)
+    customer = db.get(Customer, body.customer_id)
+    assert customer is not None  # cards.stamp already checked business and existence
+    result["applied_offer"] = slots.apply_claim(db, ctx, customer)
+    if result["applied_offer"]:
+        result["stamps"] = cards.card_view(db, ctx.business, customer)["stamps"]
+    return result
 
 
 class RedeemIn(BaseModel):
@@ -538,3 +559,102 @@ class WebhookIn(BaseModel):
 def update_webhook(body: WebhookIn, ctx: Owner, db: Db) -> dict[str, object]:
     webhooks.update(db, ctx, body.mapping, body.active)
     return webhooks.view(db, ctx)
+
+
+# --- Free slots ----------------------------------------------------------------
+
+
+class WaitlistIn(BaseModel):
+    service_id: uuid.UUID | None = None
+    days_mask: int = Field(default=127, ge=1, le=127)
+    dayparts_mask: int = Field(default=7, ge=1, le=7)
+    min_notice_minutes: int = Field(default=60, ge=0, le=1440)
+    email: EmailStr | None = None
+
+
+@api.put("/public/{slug}/card/{secret}/waitlist")
+def join_waitlist(slug: str, secret: str, body: WaitlistIn, db: Db) -> dict[str, object]:
+    b = business_by_slug(db, slug)
+    customer = cards.customer_by_card(db, b, secret)
+    if not customer.email and body.email:
+        customer.email = body.email.lower()
+        db.flush()  # a taken address fails here as 409
+    slots.join_waitlist(
+        db,
+        b,
+        customer,
+        service_id=body.service_id,
+        days_mask=body.days_mask,
+        dayparts_mask=body.dayparts_mask,
+        min_notice_minutes=body.min_notice_minutes,
+    )
+    return {"waitlist": slots.waitlist_view(db, customer)}
+
+
+@api.delete("/public/{slug}/card/{secret}/waitlist")
+def leave_waitlist(slug: str, secret: str, db: Db) -> dict[str, object]:
+    b = business_by_slug(db, slug)
+    slots.leave_waitlist(db, b, cards.customer_by_card(db, b, secret))
+    return {"waitlist": None}
+
+
+@api.get("/public/{slug}/plek/{token}")
+def slot_offer(slug: str, token: str, db: Db) -> dict[str, object]:
+    b = business_by_slug(db, slug)
+    return {"business": _public_business(b), **slots.offer_for_token(db, b, token)}
+
+
+@api.post("/public/{slug}/plek/{token}/claim")
+def claim_slot(slug: str, token: str, db: Db) -> dict[str, object]:
+    b = business_by_slug(db, slug)
+    return slots.claim(db, b, token)
+
+
+class SlotIn(BaseModel):
+    service_id: uuid.UUID | None = None
+    staff_name: str | None = Field(default=None, max_length=80)
+    starts_at: datetime
+    book_by: datetime
+    benefit: SlotBenefit
+    benefit_value: int = Field(default=0, ge=0, le=50)
+    benefit_text: str | None = Field(default=None, max_length=120)
+    capacity: int = Field(default=1, ge=1, le=20)
+    group_size: int = Field(default=3, ge=1, le=50)
+    wait_minutes: int = Field(default=10, ge=1, le=240)
+
+
+@api.get("/slots")
+def list_slots(ctx: Manager, db: Db) -> list[dict[str, object]]:
+    slots.send_due(db, ctx.business)
+    return slots.list_offers(db, ctx)
+
+
+@api.post("/slots", status_code=201)
+def create_slot(body: SlotIn, ctx: Manager, db: Db) -> dict[str, str]:
+    offer = slots.create_offer(db, ctx, slots.OfferInput(**body.model_dump()))
+    return {"id": str(offer.id)}
+
+
+@api.post("/slots/{offer_id}/send")
+def send_slot(offer_id: uuid.UUID, ctx: Manager, db: Db) -> dict[str, int]:
+    return {"sent": slots.start_sending(db, ctx, offer_id)}
+
+
+class SkipIn(BaseModel):
+    customer_id: uuid.UUID
+
+
+@api.post("/slots/{offer_id}/skip")
+def skip_slot_recipient(offer_id: uuid.UUID, body: SkipIn, ctx: Manager, db: Db) -> dict[str, bool]:
+    slots.skip_recipient(db, ctx, offer_id, body.customer_id)
+    return {"skipped": True}
+
+
+class CloseIn(BaseModel):
+    status: SlotStatus
+
+
+@api.post("/slots/{offer_id}/close")
+def close_slot(offer_id: uuid.UUID, body: CloseIn, ctx: Manager, db: Db) -> dict[str, str]:
+    slots.close(db, ctx, offer_id, body.status)
+    return {"status": body.status.value}

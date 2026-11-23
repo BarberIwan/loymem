@@ -9,6 +9,7 @@ import { api, type CardData } from "@/lib/api";
 import { useErrorText } from "@/lib/useErrorText";
 
 import styles from "../../../public.module.css";
+import { Waitlist } from "./Waitlist";
 
 const seenKey = (slug: string) => `loymem.seen.${slug}`;
 
@@ -149,6 +150,7 @@ export function CardView({ slug, secret }: { slug: string; secret: string }) {
             {t("book")}
           </LinkButton>
         )}
+        <Waitlist path={path} current={data.waitlist} hasEmail={data.has_email} services={data.services} onChange={load} />
         <Messages path={path} business={data.business.name} on={data.marketing} onChange={load} />
         <p className={styles.muted}>{t("saveTip")}</p>
         <a className={styles.link} href={`/k/${slug}/kwijt`}>

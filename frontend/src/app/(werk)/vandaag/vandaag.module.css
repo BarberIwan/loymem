@@ -95,3 +95,9 @@
   color: var(--accent);
   font-weight: var(--weight-strong);
 }
+
+.column {
+  display: grid;
+  gap: var(--space-5);
+  max-width: var(--reading);
+}

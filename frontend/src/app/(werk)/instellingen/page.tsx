@@ -188,6 +188,18 @@ export default function SettingsPage() {
               </div>
             </div>
           </Panel>
+          <div className={w.noPrint}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={async () => {
+                await api("/auth/logout", { method: "POST" }).catch(() => undefined);
+                window.location.assign("/inloggen");
+              }}
+            >
+              {common("signOut")}
+            </Button>
+          </div>
         </div>
         <aside className={w.sticky} aria-label={t("preview")}>
           <span className={w.muted}>{t("preview")}</span>

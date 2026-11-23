@@ -194,3 +194,23 @@
   justify-items: center;
   text-align: center;
 }
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.triple {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 40rem) {
+  .pair,
+  .triple {
+    grid-template-columns: 1fr;
+  }
+}

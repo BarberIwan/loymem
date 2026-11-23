@@ -43,4 +43,7 @@ export type CardData = {
   rewards: { id: string; description: string }[];
   scan_token: string;
   marketing: boolean;
+  has_email: boolean;
+  waitlist: { service_id: string | null; days_mask: number; dayparts_mask: number; min_notice_minutes: number } | null;
+  services: { id: string; name: string }[];
 };
