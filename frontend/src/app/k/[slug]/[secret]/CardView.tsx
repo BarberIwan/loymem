@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import { Pass, passStyles } from "@/components/Pass";
-import { LinkButton, Notice } from "@/components/ui";
+import { Button, LinkButton, Notice } from "@/components/ui";
 import { api, type CardData } from "@/lib/api";
 import { useErrorText } from "@/lib/useErrorText";
 
@@ -150,6 +150,28 @@ export function CardView({ slug, secret }: { slug: string; secret: string }) {
           <LinkButton href={data.business.booking_url} rel="noopener noreferrer" target="_blank" size="large" variant="secondary">
             {t("book")}
           </LinkButton>
+        )}
+        {(data.wallet.apple || data.wallet.google) && (
+          <div className={styles.inline}>
+            {data.wallet.apple && (
+              <LinkButton variant="secondary" href={`/api/v1${path}/wallet/apple`}>
+                {t("apple")}
+              </LinkButton>
+            )}
+            {data.wallet.google && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={async () => {
+                  const r = await api<{ url: string }>(`${path}/wallet/google`).catch(() => null);
+                  if (r) window.location.href = r.url;
+                }}
+              >
+                {t("google")}
+              </Button>
+            )}
+            <p className={styles.muted}>{t("walletNote")}</p>
+          </div>
         )}
         <Memberships path={path} plans={data.memberships.plans} subscriptions={data.memberships.subscriptions} onChange={load} />
         <Waitlist path={path} current={data.waitlist} hasEmail={data.has_email} services={data.services} onChange={load} />

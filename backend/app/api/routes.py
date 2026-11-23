@@ -22,6 +22,7 @@ from app.api.deps import (
 )
 from app.config import get_settings
 from app.db import get_db, set_tenant
+from app.integrations import wallet
 from app.models import (
     Business,
     ConsentPurpose,
@@ -129,6 +130,7 @@ def card(slug: str, secret: str, db: Db) -> dict[str, object]:
         "scan_token": scan_token_for(customer),
         "marketing": owner.has_consent(db, customer.id, ConsentPurpose.MARKETING),
         "has_email": bool(customer.email),
+        "wallet": {"apple": wallet.apple_configured(), "google": wallet.google_configured()},
         "waitlist": slots.waitlist_view(db, customer),
         "memberships": memberships.customer_view(db, b, customer),
         "services": [
@@ -815,3 +817,48 @@ def unsubscribe(slug: str, token: str, db: Db) -> dict[str, str]:
 
     b = business_by_slug(db, slug)
     return {"purpose": do_unsubscribe(db, b, token).value}
+
+
+# --- Wallet passes ----------------------------------------------------------------
+
+
+def _pass_data(db: Session, b: Business, secret: str) -> wallet.PassData:
+    customer = cards.customer_by_card(db, b, secret)
+    view = cards.card_view(db, b, customer)
+    program = view["program"]
+    assert isinstance(program, dict)
+    palette = card_palette(b.brand_colour)
+    return wallet.PassData(
+        serial=str(customer.id),
+        business_name=b.name,
+        program_name=str(program["name"]),
+        first_name=customer.first_name,
+        stamps=int(str(view["stamps"])),
+        stamps_required=int(program["stamps_required"]),
+        reward=str(program["reward"]),
+        scan_token=scan_token_for(customer),
+        background=palette["background"],
+        foreground=palette["text"],
+        link_url=b.booking_url,
+    )
+
+
+@api.get("/public/{slug}/card/{secret}/wallet/apple")
+def apple_wallet(slug: str, secret: str, db: Db) -> Response:
+    if not wallet.apple_configured():
+        raise HTTPException(status_code=404, detail="wallet_not_available")
+    b = business_by_slug(db, slug)
+    body = wallet.apple_pass(_pass_data(db, b, secret))
+    return Response(
+        body,
+        media_type="application/vnd.apple.pkpass",
+        headers={"Content-Disposition": f'attachment; filename="{b.slug}.pkpass"'},
+    )
+
+
+@api.get("/public/{slug}/card/{secret}/wallet/google")
+def google_wallet(slug: str, secret: str, db: Db) -> dict[str, str]:
+    if not wallet.google_configured():
+        raise HTTPException(status_code=404, detail="wallet_not_available")
+    b = business_by_slug(db, slug)
+    return {"url": wallet.google_save_url(_pass_data(db, b, secret), b.slug)}

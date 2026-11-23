@@ -84,7 +84,10 @@
     "saveTip": "Add this page to your home screen. Then your card is always with you.",
     "messages": "Messages from {business}",
     "lostLink": "Ask for a new link",
-    "codeLeft": "{time} left."
+    "codeLeft": "{time} left.",
+    "apple": "Add to Apple Wallet",
+    "google": "Add to Google Wallet",
+    "walletNote": "The pass in your wallet shows your stamps as of now. The card here is always up to date."
   },
   "lost": {
     "title": "A new link for your card",
