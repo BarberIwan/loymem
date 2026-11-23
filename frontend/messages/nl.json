@@ -54,7 +54,13 @@
     "subscription_not_found": "Dit abonnement bestaat niet.",
     "campaign_already_sent": "Deze campagne is al verstuurd.",
     "unknown_audience": "Kies voor wie de campagne is.",
-    "campaign_not_found": "Deze campagne bestaat niet."
+    "campaign_not_found": "Deze campagne bestaat niet.",
+    "signup_closed": "Aanmelden kan nu alleen op uitnodiging.",
+    "signup_code_invalid": "Deze uitnodigingscode klopt niet.",
+    "email_in_use": "Dit e-mailadres heeft al een account.",
+    "cannot_change_self": "Je kunt jezelf niet uitzetten.",
+    "staff_not_found": "Deze medewerker bestaat niet.",
+    "one_owner": "Er is één eigenaar per zaak."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -452,5 +458,43 @@
     "working": "Even geduld.",
     "done": "Je bent afgemeld. Je krijgt deze berichten niet meer. Je stempels en beloningen blijven gewoon staan.",
     "failed": "Deze afmeldlink werkt niet. Je kunt berichten ook uitzetten op je kaart."
+  },
+  "businessSignup": {
+    "title": "Je zaak aanmelden",
+    "lead": "Binnen tien minuten staat je eerste kaart live. Je hebt een uitnodigingscode nodig.",
+    "code": "Uitnodigingscode",
+    "businessName": "Naam van je zaak",
+    "ownerName": "Je naam",
+    "email": "E-mail",
+    "password": "Wachtwoord",
+    "passwordHint": "Minstens tien tekens.",
+    "submit": "Zaak aanmaken"
+  },
+  "staffPanel": {
+    "title": "Medewerkers",
+    "lead": "Medewerkers kunnen scannen, stempelen en inwisselen. Ze zien geen contactgegevens.",
+    "name": "Naam",
+    "email": "E-mail",
+    "role": "Rol",
+    "roleStaff": "Medewerker",
+    "roleManager": "Manager",
+    "rOwner": "Eigenaar",
+    "rManager": "Manager",
+    "rStaff": "Medewerker",
+    "password": "Tijdelijk wachtwoord",
+    "passwordHint": "Minstens tien tekens. Geef het persoonlijk door.",
+    "add": "Toevoegen",
+    "deactivate": "Uitzetten",
+    "activate": "Weer aanzetten",
+    "inactive": "Uitgezet"
+  },
+  "start": {
+    "title": "Zo staat je kaart live",
+    "s1": "Naam en kleur van je zaak",
+    "s2": "Spaarregel en beloning",
+    "s3": "Behandelingen met hoe snel klanten terugkomen",
+    "s4": "Aanmeldcode printen en bij de kassa zetten",
+    "s5": "Medewerkers toevoegen",
+    "done": "Klaar"
   }
 }
