@@ -177,18 +177,18 @@
   },
   "inbox": {
     "title": "Vandaag",
-    "lead": "Wie je nu kunt benaderen. Hoogstens {limit} per dag, de belangrijkste eerst.",
+    "lead": "{count, plural, one {# kans} other {# kansen}} vandaag, hoogstens {limit}. De belangrijkste eerst.",
     "dueReason": "Geen bezoek geregistreerd sinds {date}.",
-    "dueDetail": "{service}, meestal na {days} dagen terug.",
+    "dueDetail": "{service}. Komt normaal na {days} dagen terug.",
     "dueDetailNoService": "Laatste bezoek {days} dagen geleden.",
-    "rhythm": "Eigen ritme: ongeveer elke {days} dagen.",
+    "rhythm": "Zelf gemiddeld om de {days} dagen.",
     "rewardReason": "Verdiende {reward} op {date} en heeft die nog niet gebruikt.",
     "messageDue": "Hoi {name}, het is alweer even geleden. Zin om langs te komen bij {business}?",
     "messageReward": "Hoi {name}, er staat bij {business} nog {reward} voor je klaar.",
-    "messageLink": "Plannen kan hier: {url}",
-    "send": "Verstuur",
+    "messageLink": "Boeken kan hier: {url}",
+    "send": "Verstuur e-mail",
     "edit": "Aanpassen",
-    "done": "Gedaan",
+    "done": "Gesproken",
     "ignore": "Negeer {days} dagen",
     "inPerson": "Geen toestemming voor berichten. Spreek {name} aan als je elkaar ziet.",
     "messageLabel": "Bericht aan {name}",
@@ -199,6 +199,9 @@
     "emptyBody": "Hier verschijnt wie toe is aan een bezoek of een beloning laat liggen. Zet bij Instellingen per behandeling na hoeveel dagen klanten meestal terugkomen.",
     "emptyExample": "Voorbeeld: Sam. Geen bezoek geregistreerd sinds 12 oktober. Knippen, meestal na 28 dagen terug.",
     "emptyAction": "Naar instellingen",
-    "customer": "Klant"
+    "customer": "Klant",
+    "kindDue": "Terugkeer",
+    "kindReward": "Beloning",
+    "kindInPerson": "Persoonlijk"
   }
 }

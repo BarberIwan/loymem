@@ -37,9 +37,9 @@ export default function TodayPage() {
 
   return (
     <>
-      <div className={w.head}>
+      <div className={s.header}>
         <h1 className={shell.title}>{t("title")}</h1>
-        {data && <span className={w.muted}>{t("lead", { limit: data.daily_limit })}</span>}
+        {data && <p className={w.muted}>{t("lead", { count: data.items.length, limit: data.daily_limit })}</p>}
       </div>
       {error && <Notice tone="danger">{error}</Notice>}
       {notice && <Notice>{notice}</Notice>}
@@ -107,6 +107,9 @@ function Opportunity({ item, ignoreDays, business, onDone, onError }: { item: It
 
   return (
     <li className={s.card}>
+      <span className={s.kind}>
+        {item.kind === "reward_unused" ? t("kindReward") : item.action === "in_person" ? t("kindInPerson") : t("kindDue")}
+      </span>
       <span className={s.name}>{name}</span>
       {item.kind === "reward_unused" ? (
         <p className={s.reason}>{t("rewardReason", { reward: String(f.reward), date: date(f.earned_on) })}</p>

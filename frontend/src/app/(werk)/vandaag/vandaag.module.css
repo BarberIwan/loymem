@@ -9,7 +9,7 @@
 
 .card {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: var(--space-5);
   border: var(--hairline) solid var(--line);
   border-radius: var(--radius-md);
@@ -60,6 +60,7 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  margin-top: var(--space-2);
   align-items: center;
   gap: var(--space-3);
 }
@@ -79,4 +80,18 @@
   color: var(--ink-2);
   font-size: var(--text-sm);
   line-height: var(--lh-sm);
+}
+
+.header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.kind {
+  font-size: var(--text-xs);
+  line-height: var(--lh-xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: var(--weight-strong);
 }
