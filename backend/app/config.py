@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_username: str = ""
     smtp_password: str = ""
+    # A new business can sign up only with this code; empty means sign-up is closed.
+    signup_code: str = ""
     # Selling memberships and bundles stays off until the legal check in §8 is done.
     memberships_enabled: bool = False
     # Wallet passes stay off until the certificates are set (base64 of the PEM files).

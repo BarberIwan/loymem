@@ -54,7 +54,13 @@
     "subscription_not_found": "This membership does not exist.",
     "campaign_already_sent": "This campaign was already sent.",
     "unknown_audience": "Choose who the campaign is for.",
-    "campaign_not_found": "This campaign does not exist."
+    "campaign_not_found": "This campaign does not exist.",
+    "signup_closed": "Sign-up is by invitation only for now.",
+    "signup_code_invalid": "This invitation code is not right.",
+    "email_in_use": "This email address already has an account.",
+    "cannot_change_self": "You cannot turn yourself off.",
+    "staff_not_found": "This staff member does not exist.",
+    "one_owner": "There is one owner per business."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -452,5 +458,43 @@
     "working": "One moment.",
     "done": "You are unsubscribed. You will not get these messages anymore. Your stamps and rewards stay as they are.",
     "failed": "This unsubscribe link does not work. You can also turn messages off on your card."
+  },
+  "businessSignup": {
+    "title": "Sign up your business",
+    "lead": "Your first card is live within ten minutes. You need an invitation code.",
+    "code": "Invitation code",
+    "businessName": "Business name",
+    "ownerName": "Your name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least ten characters.",
+    "submit": "Create business"
+  },
+  "staffPanel": {
+    "title": "Staff",
+    "lead": "Staff can scan, stamp and redeem. They do not see contact details.",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "roleStaff": "Staff",
+    "roleManager": "Manager",
+    "rOwner": "Owner",
+    "rManager": "Manager",
+    "rStaff": "Staff",
+    "password": "Temporary password",
+    "passwordHint": "At least ten characters. Hand it over in person.",
+    "add": "Add",
+    "deactivate": "Turn off",
+    "activate": "Turn back on",
+    "inactive": "Turned off"
+  },
+  "start": {
+    "title": "Get your card live",
+    "s1": "Business name and colour",
+    "s2": "Collecting rule and reward",
+    "s3": "Services and how soon customers come back",
+    "s4": "Print the signup code and put it by the till",
+    "s5": "Add staff",
+    "done": "Done"
   }
 }

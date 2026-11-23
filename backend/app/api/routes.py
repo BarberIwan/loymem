@@ -47,6 +47,7 @@ from app.services import (
     inbox,
     ledger,
     memberships,
+    onboarding,
     owner,
     slots,
     webhooks,
@@ -862,3 +863,46 @@ def google_wallet(slug: str, secret: str, db: Db) -> dict[str, str]:
         raise HTTPException(status_code=404, detail="wallet_not_available")
     b = business_by_slug(db, slug)
     return {"url": wallet.google_save_url(_pass_data(db, b, secret), b.slug)}
+
+
+# --- New business and staff -----------------------------------------------------
+
+
+class BusinessSignupIn(BaseModel):
+    code: str = Field(min_length=4, max_length=100)
+    business_name: str = Field(min_length=2, max_length=120)
+    owner_name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    password: str = Field(min_length=10, max_length=200)
+
+
+@api.post("/business-signup", status_code=201)
+def business_signup(body: BusinessSignupIn, response: Response, db: Db) -> dict[str, str]:
+    business, owner = onboarding.sign_up(
+        db,
+        code=body.code,
+        business_name=body.business_name,
+        owner_name=body.owner_name,
+        email=str(body.email),
+        password=body.password,
+    )
+    response.set_cookie(
+        SESSION_COOKIE,
+        issue_session(owner.id, business.id),
+        httponly=True,
+        samesite="lax",
+        secure=get_settings().secure_cookies,
+        max_age=get_settings().session_hours * 3600,
+        path="/",
+    )
+    return {"slug": business.slug}
+
+
+class StaffActiveIn(BaseModel):
+    active: bool
+
+
+@api.patch("/staff/{staff_id}")
+def update_staff(staff_id: uuid.UUID, body: StaffActiveIn, ctx: Owner, db: Db) -> dict[str, bool]:
+    onboarding.set_staff_active(db, ctx, staff_id, body.active)
+    return {"active": body.active}

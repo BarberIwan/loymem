@@ -1,11 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { Pass } from "@/components/Pass";
 import { Qr } from "@/components/Qr";
+import { StaffPanel } from "@/components/StaffPanel";
 import { WebhookPanel } from "@/components/WebhookPanel";
 import { Button, Field, LinkButton, Notice, Panel, uiStyles } from "@/components/ui";
 import { api, type Palette } from "@/lib/api";
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const errorText = useErrorText();
   const router = useRouter();
   const me = useMe();
+  const showStart = useSearchParams().get("start") === "1";
   const [data, setData] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Partial<Settings>>({});
   const [palette, setPalette] = useState<Palette | null>(null);
@@ -94,6 +96,7 @@ export default function SettingsPage() {
   return (
     <>
       <h1 className={shell.title}>{t("title")}</h1>
+      {showStart && <StartList settings={data} />}
       <div className={w.grid}>
         <div className={w.stack}>
           <Panel title={t("cardTitle")}>
@@ -189,6 +192,7 @@ export default function SettingsPage() {
             </div>
           </Panel>
           )}
+          <StaffPanel />
           <WebhookPanel />
           <Panel title={t("signupTitle")}>
             <div className={`${w.stack} ${w.centre}`} id="aanmelden">
@@ -223,5 +227,29 @@ export default function SettingsPage() {
         </aside>
       </div>
     </>
+  );
+}
+
+
+function StartList({ settings }: { settings: Settings }) {
+  const t = useTranslations("start");
+  const steps = [
+    { key: "s1", done: settings.brand_colour.toUpperCase() !== "#1F4A38" },
+    { key: "s2", done: settings.program_name !== "Stempelkaart" || settings.stamps_required !== 10 },
+    { key: "s3", done: settings.services.length > 0 },
+    { key: "s4", done: false },
+    { key: "s5", done: false },
+  ] as const;
+  return (
+    <Panel title={t("title")}>
+      <ol className={uiStyles.steps}>
+        {steps.map((st) => (
+          <li key={st.key} className={st.done ? uiStyles.stepDone : undefined}>
+            {t(st.key)}
+            {st.done ? ` · ${t("done")}` : ""}
+          </li>
+        ))}
+      </ol>
+    </Panel>
   );
 }
