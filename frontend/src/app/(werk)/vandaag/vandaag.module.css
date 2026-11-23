@@ -1,5 +1,6 @@
 .list {
   display: grid;
+  min-width: 0;
   max-width: var(--reading);
   gap: var(--space-4);
   list-style: none;
@@ -9,6 +10,8 @@
 
 .card {
   display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: var(--space-2);
   padding: var(--space-5);
   border: var(--hairline) solid var(--line);
@@ -98,6 +101,7 @@
 
 .column {
   display: grid;
+  min-width: 0;
   gap: var(--space-5);
   max-width: var(--reading);
 }

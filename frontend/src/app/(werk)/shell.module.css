@@ -2,6 +2,7 @@
   min-height: 100dvh;
   display: grid;
   grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .bar {
@@ -26,6 +27,8 @@
 
 .navLink {
   display: inline-flex;
+  white-space: nowrap;
+  flex: none;
   align-items: center;
   min-height: var(--hit);
   padding: 0 var(--space-3);
@@ -53,6 +56,7 @@
 .main {
   width: 100%;
   min-width: 0;
+  overflow-x: clip;
   max-width: var(--page);
   margin-inline: auto;
   padding: var(--space-6) var(--space-5) var(--space-8);

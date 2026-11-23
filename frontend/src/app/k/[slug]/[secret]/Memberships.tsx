@@ -134,14 +134,20 @@ function Offer({ path, plan }: { path: string; plan: PlanTerms }) {
             <dd>{plan.pause_policy}</dd>
           </dl>
           <p className={styles.muted}>{t("version", { version: plan.terms_version })}</p>
+          <p>{plan.renews ? t("charge", { price }) : t("chargeOnce", { price })}</p>
           <label className={styles.check}>
             <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
             <span>{t("accept")}</span>
           </label>
           {error && <Notice tone="danger">{error}</Notice>}
-          <Button type="button" size="large" onClick={buy} disabled={!accepted}>
+          <Button type="button" size="large" onClick={buy} disabled={!accepted} aria-describedby={accepted ? undefined : `accept-${plan.id}`}>
             {t("buy")} · {price}
           </Button>
+          {!accepted && (
+            <p id={`accept-${plan.id}`} className={styles.muted}>
+              {t("acceptFirst")}
+            </p>
+          )}
         </>
       )}
     </div>

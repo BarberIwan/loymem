@@ -20,7 +20,6 @@ export default function WorkLayout({ children }: { children: React.ReactNode }) 
     { href: "/scan", label: t("scan"), roles: ["owner", "manager", "staff"] },
     { href: "/plekken", label: t("slots"), roles: ["owner", "manager"] },
     { href: "/campagnes", label: t("campaigns"), roles: ["owner", "manager"] },
-    { href: "/abonnementen", label: t("plans"), roles: ["owner"] },
     { href: "/overzicht", label: t("overview"), roles: ["owner", "manager"] },
     { href: "/instellingen", label: t("settings"), roles: ["owner", "manager"] },
   ].filter((l) => me && l.roles.includes(me.role));

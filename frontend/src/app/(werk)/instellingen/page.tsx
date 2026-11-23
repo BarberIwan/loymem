@@ -7,10 +7,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Pass } from "@/components/Pass";
 import { Qr } from "@/components/Qr";
 import { WebhookPanel } from "@/components/WebhookPanel";
-import { Button, Field, Notice, Panel, uiStyles } from "@/components/ui";
+import { Button, Field, LinkButton, Notice, Panel, uiStyles } from "@/components/ui";
 import { api, type Palette } from "@/lib/api";
 import { cardText } from "@/lib/contrast";
 import { useErrorText } from "@/lib/useErrorText";
+import { useMe } from "@/lib/useMe";
 
 import shell from "../shell.module.css";
 import w from "../werk.module.css";
@@ -38,6 +39,7 @@ export default function SettingsPage() {
   const common = useTranslations("common");
   const errorText = useErrorText();
   const router = useRouter();
+  const me = useMe();
   const [data, setData] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Partial<Settings>>({});
   const [palette, setPalette] = useState<Palette | null>(null);
@@ -175,6 +177,18 @@ export default function SettingsPage() {
               </form>
             </div>
           </Panel>
+          {me?.role === "owner" && (
+          <Panel title={t("plansTitle")}>
+            <div className={w.stack}>
+              <p className={w.muted}>{t("plansHint")}</p>
+              <div>
+                <LinkButton variant="secondary" href="/abonnementen">
+                  {t("plansOpen")}
+                </LinkButton>
+              </div>
+            </div>
+          </Panel>
+          )}
           <WebhookPanel />
           <Panel title={t("signupTitle")}>
             <div className={`${w.stack} ${w.centre}`} id="aanmelden">
