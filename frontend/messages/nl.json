@@ -43,7 +43,15 @@
     "already_claimed": "Je hebt deze plek al.",
     "slot_not_open": "Deze plek is niet meer open.",
     "recipient_not_queued": "Deze klant is al benaderd.",
-    "offer_not_found": "Deze aanbieding bestaat niet."
+    "offer_not_found": "Deze aanbieding bestaat niet.",
+    "memberships_not_enabled": "Dit is nog niet te koop.",
+    "plan_not_found": "Dit plan bestaat niet meer.",
+    "terms_changed": "De voorwaarden zijn net gewijzigd. Lees ze opnieuw.",
+    "payments_not_connected": "De zaak heeft nog geen betaalaccount gekoppeld.",
+    "payment_provider_error": "Betalen lukt nu niet. Probeer het zo nog eens.",
+    "no_active_membership": "Geen actief abonnement.",
+    "no_credits_left": "Geen tegoed meer.",
+    "subscription_not_found": "Dit abonnement bestaat niet."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -98,7 +106,8 @@
     "overview": "Overzicht",
     "settings": "Instellingen",
     "today": "Vandaag",
-    "slots": "Vrije plekken"
+    "slots": "Vrije plekken",
+    "plans": "Abonnementen"
   },
   "scan": {
     "title": "Scannen",
@@ -124,7 +133,10 @@
     "tabStamp": "Stempelen",
     "tabRedeem": "Inwisselen",
     "offerClaimed": "Heeft een vrije plek geclaimd: {benefit}",
-    "offerApplied": "Voordeel toegepast: {benefit}"
+    "offerApplied": "Voordeel toegepast: {benefit}",
+    "credits": "{plan}: nog {count} tegoed",
+    "useCredit": "Bezoek van tegoed",
+    "creditUsed": "Tegoed gebruikt. Nog {count} over."
   },
   "overview": {
     "title": "Overzicht",
@@ -333,5 +345,58 @@
     "emptyTitle": "Nog geen vrije plekken",
     "emptyBody": "Valt er een afspraak uit, geef hem hier vrij. Klanten op de meldlijst krijgen dan een bericht, de best passende eerst.",
     "emptyExample": "Voorbeeld: vandaag 14:30, knippen, boeken tot 13:45, twee extra stempels."
+  },
+  "membership": {
+    "title": "Abonnementen en bundels",
+    "perMonth": "{price} per maand",
+    "once": "{price} eenmalig",
+    "creditsMonth": "{count, plural, one {# bezoek} other {# bezoeken}} per maand",
+    "creditsTotal": "{count, plural, one {# bezoek} other {# bezoeken}}, {days} dagen geldig",
+    "termsTitle": "Voorwaarden",
+    "renews": "Verlengt elke maand. Opzeggen kan altijd hier op je kaart en gaat in aan het eind van de betaalde maand.",
+    "noRenew": "Verlengt niet.",
+    "notice": "Opzegtermijn: {days} dagen.",
+    "noNotice": "Geen opzegtermijn.",
+    "coolingOff": "Bedenktijd: {days} dagen na aankoop.",
+    "unused": "Ongebruikt",
+    "noShow": "Niet komen",
+    "pause": "Pauzeren",
+    "version": "Voorwaarden versie {version}",
+    "accept": "Ik heb de voorwaarden gelezen",
+    "buy": "Afrekenen",
+    "yours": "Je {plan}",
+    "creditsLeft": "{count, plural, one {Nog # bezoek} other {Nog # bezoeken}} tegoed",
+    "until": "Loopt tot {date}",
+    "cancelled": "Opgezegd. Je kunt het gebruiken tot {date}.",
+    "pending": "Wacht op betaling.",
+    "cancel": "Opzeggen",
+    "cancelConfirm": "Weet je het zeker? Het abonnement stopt aan het eind van deze periode.",
+    "cancelYes": "Ja, opzeggen",
+    "keep": "Nee, houden"
+  },
+  "plans": {
+    "title": "Abonnementen",
+    "lead": "Vaste klanten betalen vooruit en komen vaker. Het geld gaat rechtstreeks naar je eigen betaalaccount.",
+    "off": "Verkopen staat nog uit tot de voorwaarden juridisch zijn nagekeken. Je kunt plannen al klaarzetten.",
+    "connect": "Koppel je betaalaccount",
+    "connected": "Je betaalaccount is gekoppeld.",
+    "new": "Nieuw plan",
+    "kind": "Soort",
+    "kindMembership": "Abonnement (per maand)",
+    "kindBundle": "Bundel (eenmalig)",
+    "name": "Naam",
+    "price": "Prijs in euro",
+    "credits": "Bezoeken",
+    "validity": "Geldig (dagen)",
+    "notice": "Opzegtermijn (dagen, hoogstens 31)",
+    "coolingOff": "Bedenktijd (dagen, minstens 14)",
+    "unused": "Wat gebeurt er met ongebruikte bezoeken",
+    "noShow": "Wat als een klant niet komt",
+    "pause": "Pauzeren",
+    "save": "Opslaan",
+    "versionNote": "Pas je prijs of voorwaarden aan, dan krijgt het plan een nieuwe versie. Wie al kocht, houdt de oude.",
+    "emptyTitle": "Nog geen plannen",
+    "emptyBody": "Begin met één abonnement dat bij je vaste klanten past.",
+    "emptyExample": "Voorbeeld: Knipabonnement, 35 euro per maand, 2 knipbeurten."
   }
 }

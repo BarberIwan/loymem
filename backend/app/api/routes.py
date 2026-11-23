@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
@@ -28,6 +28,8 @@ from app.models import (
     Customer,
     CustomerSource,
     InboxDecision,
+    Plan,
+    PlanKind,
     Program,
     Role,
     Service,
@@ -36,7 +38,17 @@ from app.models import (
     StaffMember,
 )
 from app.security import hash_password, issue_session, verify_password
-from app.services import DomainError, audit, cards, inbox, ledger, owner, slots, webhooks
+from app.services import (
+    DomainError,
+    audit,
+    cards,
+    inbox,
+    ledger,
+    memberships,
+    owner,
+    slots,
+    webhooks,
+)
 from app.services.brand import card_palette
 from app.services.cards import StaffContext, scan_token_for
 from app.services.rhythm import visit_statuses
@@ -117,6 +129,7 @@ def card(slug: str, secret: str, db: Db) -> dict[str, object]:
         "marketing": owner.has_consent(db, customer.id, ConsentPurpose.MARKETING),
         "has_email": bool(customer.email),
         "waitlist": slots.waitlist_view(db, customer),
+        "memberships": memberships.customer_view(db, b, customer),
         "services": [
             {"id": str(s.id), "name": s.name}
             for s in db.scalars(
@@ -235,6 +248,7 @@ def scan(body: ScanIn, ctx: Staff, db: Db) -> dict[str, object]:
     return {
         **cards.scan_summary(db, ctx, customer),
         "claimed_offer": slots.pending_claim(db, ctx, customer),
+        "membership": memberships.staff_view(db, ctx.business.id, customer.id),
         "services": [{"id": str(s.id), "name": s.name} for s in services],
     }
 
@@ -658,3 +672,106 @@ class CloseIn(BaseModel):
 def close_slot(offer_id: uuid.UUID, body: CloseIn, ctx: Manager, db: Db) -> dict[str, str]:
     slots.close(db, ctx, offer_id, body.status)
     return {"status": body.status.value}
+
+
+# --- Memberships and bundles --------------------------------------------------
+
+
+class PlanIn(BaseModel):
+    kind: PlanKind
+    name: str = Field(min_length=2, max_length=80)
+    price_cents: int = Field(ge=100, le=100_000)
+    credits: int = Field(ge=1, le=100)
+    validity_days: int | None = Field(default=None, ge=30, le=1095)
+    cancel_notice_days: int = Field(default=0, ge=0, le=31)
+    cooling_off_days: int = Field(default=14, ge=14, le=60)
+    unused_policy: str = Field(min_length=10, max_length=600)
+    no_show_policy: str = Field(min_length=10, max_length=600)
+    pause_policy: str = Field(min_length=10, max_length=600)
+    active: bool = True
+
+
+@api.get("/plans")
+def list_plans(ctx: Owner, db: Db) -> dict[str, object]:
+    plans = db.scalars(
+        select(Plan).where(Plan.business_id == ctx.business.id).order_by(Plan.created_at)
+    ).all()
+    return {
+        "plans": [memberships.plan_terms(p) for p in plans],
+        "connected": memberships.is_connected(db, ctx.business.id),
+        "selling_enabled": get_settings().memberships_enabled,
+    }
+
+
+@api.post("/plans", status_code=201)
+def create_plan(body: PlanIn, ctx: Owner, db: Db) -> dict[str, object]:
+    return memberships.plan_terms(memberships.save_plan(db, ctx, None, body.model_dump()))
+
+
+@api.put("/plans/{plan_id}")
+def update_plan(plan_id: uuid.UUID, body: PlanIn, ctx: Owner, db: Db) -> dict[str, object]:
+    return memberships.plan_terms(memberships.save_plan(db, ctx, plan_id, body.model_dump()))
+
+
+def _redirect_uri() -> str:
+    return f"{get_settings().public_base_url}/api/v1/payments/connect/callback"
+
+
+@api.get("/payments/connect")
+def payments_connect(ctx: Owner) -> dict[str, str]:
+    return {"url": memberships.connect_url(ctx, _redirect_uri())}
+
+
+@api.get("/payments/connect/callback")
+def payments_callback(code: str, state: str, ctx: Owner, db: Db) -> RedirectResponse:
+    if state != str(ctx.business.id):
+        raise HTTPException(status_code=400, detail="state_mismatch")
+    tokens = memberships.provider().exchange_code(code, _redirect_uri())
+    memberships.store_tokens(db, ctx.business, tokens)
+    audit.record(
+        db, ctx.business.id, "payments.connected", "business", ctx.business.id, ctx.staff.id
+    )
+    return RedirectResponse("/abonnementen", status_code=303)
+
+
+@api.post("/payments/{slug}/webhook")
+async def payments_webhook(slug: str, request: Request, db: Db) -> dict[str, str]:
+    form = await request.form()
+    payment_id = str(form.get("id") or "")[:60]
+    if not payment_id:
+        raise HTTPException(status_code=400, detail="missing_id")
+    b = business_by_slug(db, slug)
+    return {"result": memberships.handle_webhook(db, b, payment_id)}
+
+
+class BuyIn(BaseModel):
+    terms_version: int
+
+
+@api.post("/public/{slug}/card/{secret}/plans/{plan_id}/buy")
+def buy_plan(slug: str, secret: str, plan_id: uuid.UUID, body: BuyIn, db: Db) -> dict[str, str]:
+    b = business_by_slug(db, slug)
+    customer = cards.customer_by_card(db, b, secret)
+    url = memberships.start_purchase(
+        db, b, customer, plan_id, body.terms_version, f"/k/{slug}/{secret}"
+    )
+    return {"checkout_url": url}
+
+
+@api.post("/public/{slug}/card/{secret}/subscriptions/{subscription_id}/cancel")
+def cancel_subscription(
+    slug: str, secret: str, subscription_id: uuid.UUID, db: Db
+) -> dict[str, object]:
+    b = business_by_slug(db, slug)
+    customer = cards.customer_by_card(db, b, secret)
+    return memberships.cancel_online(db, b, customer, subscription_id)
+
+
+class CreditUseIn(BaseModel):
+    customer_id: uuid.UUID
+    request_id: str = Field(min_length=8, max_length=64)
+
+
+@api.post("/credits/use")
+def use_credit(body: CreditUseIn, ctx: Staff, db: Db) -> dict[str, object]:
+    return memberships.use_at_counter(db, ctx, body.customer_id, body.request_id)

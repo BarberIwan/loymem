@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     reissue_link_minutes: int = 30
     unusual_stamps_per_hour: int = 20
     email_delivery: str = "log_only"
+    # Selling memberships and bundles stays off until the legal check in §8 is done.
+    memberships_enabled: bool = False
+    mollie_client_id: str = ""
+    mollie_client_secret: str = ""
+    mollie_api_base: str = "https://api.mollie.com/v2"
+    mollie_oauth_base: str = "https://www.mollie.com/oauth2"
 
     @property
     def secure_cookies(self) -> bool:

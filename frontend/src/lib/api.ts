@@ -46,4 +46,5 @@ export type CardData = {
   has_email: boolean;
   waitlist: { service_id: string | null; days_mask: number; dayparts_mask: number; min_notice_minutes: number } | null;
   services: { id: string; name: string }[];
+  memberships: { plans: import("@/app/k/[slug]/[secret]/Memberships").PlanTerms[]; subscriptions: import("@/app/k/[slug]/[secret]/Memberships").Sub[] };
 };
