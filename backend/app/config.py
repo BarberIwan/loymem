@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     # Selling memberships and bundles stays off until the legal check in §8 is done.
     memberships_enabled: bool = False
+    # Wallet passes stay off until the certificates are set (base64 of the PEM files).
+    wallet_enabled: bool = False
+    apple_pass_type_id: str = ""
+    apple_team_id: str = ""
+    apple_pass_cert_pem_b64: str = ""
+    apple_pass_key_pem_b64: str = ""
+    apple_wwdr_pem_b64: str = ""
+    google_wallet_issuer_id: str = ""
+    google_wallet_service_account_b64: str = ""
     mollie_client_id: str = ""
     mollie_client_secret: str = ""
     mollie_api_base: str = "https://api.mollie.com/v2"

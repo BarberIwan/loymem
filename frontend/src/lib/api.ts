@@ -44,6 +44,7 @@ export type CardData = {
   scan_token: string;
   marketing: boolean;
   has_email: boolean;
+  wallet: { apple: boolean; google: boolean };
   waitlist: { service_id: string | null; days_mask: number; dayparts_mask: number; min_notice_minutes: number } | null;
   services: { id: string; name: string }[];
   memberships: { plans: import("@/app/k/[slug]/[secret]/Memberships").PlanTerms[]; subscriptions: import("@/app/k/[slug]/[secret]/Memberships").Sub[] };

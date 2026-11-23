@@ -84,7 +84,10 @@
     "saveTip": "Zet deze pagina op je beginscherm. Dan heb je je kaart altijd bij je.",
     "messages": "Berichten van {business}",
     "lostLink": "Nieuwe link aanvragen",
-    "codeLeft": "Nog {time}."
+    "codeLeft": "Nog {time}.",
+    "apple": "Zet in Apple Wallet",
+    "google": "Zet in Google Wallet",
+    "walletNote": "De pas in je wallet toont je stempels van nu. De kaart hier is altijd bij."
   },
   "lost": {
     "title": "Nieuwe link voor je kaart",
