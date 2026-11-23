@@ -43,12 +43,12 @@ class Settings(BaseSettings):
 
     @property
     def secure_cookies(self) -> bool:
-        return self.environment == "production"
+        return self.environment in ("production", "staging")
 
 
 @lru_cache
 def get_settings() -> Settings:
     s = Settings()
-    if s.environment == "production" and (s.secret_key == DEV_SECRET or len(s.secret_key) < 32):
+    if s.secure_cookies and (s.secret_key == DEV_SECRET or len(s.secret_key) < 32):
         raise RuntimeError("LOYMEM_SECRET_KEY ontbreekt of is te kort")
     return s
