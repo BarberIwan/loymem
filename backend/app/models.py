@@ -356,6 +356,39 @@ class InboxEntry(Base):
     )
 
 
+class WebhookConfig(Base):
+    """A business's generic webhook for completed appointments.
+
+    The secret is stored encrypted: verifying an HMAC needs the secret itself.
+    ``mapping`` says where in the incoming JSON each field lives.
+    """
+
+    __tablename__ = "webhook_configs"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False, unique=True
+    )
+    secret_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    mapping: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+
+class WebhookDelivery(Base):
+    """One received call and what came of it. Never holds personal data."""
+
+    __tablename__ = "webhook_deliveries"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    appointment_id: Mapped[str | None] = mapped_column(String(120))
+    outcome: Mapped[str] = mapped_column(String(30), nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (Index("ix_webhook_delivery_time", "business_id", "created_at"),)
+
+
 class AuditEntry(Base):
     __tablename__ = "audit_log"
 

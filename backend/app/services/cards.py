@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
@@ -247,13 +247,31 @@ def stamp(
         is None
     ):
         raise NotFound("service_not_found")
-    program = active_program(db, ctx.business.id)
+    return record_visit(db, ctx.business, customer, service_id, staff_id=ctx.staff.id)
+
+
+def record_visit(
+    db: Session,
+    business: Business,
+    customer: Customer,
+    service_id: uuid.UUID | None,
+    *,
+    staff_id: uuid.UUID | None = None,
+    at: datetime | None = None,
+) -> dict[str, object]:
+    """One stamp per period, whatever reports the visit: a scan or a booking system.
+
+    The key is the period of the visit itself, so a scan at the counter and the
+    booking system reporting the same visit later collapse into one stamp.
+    """
+    at = at or utcnow()
+    program = active_program(db, business.id)
     cp = _program_link(db, customer, program)
     # Serialise everything that touches this card for the rest of the transaction.
     db.refresh(cp, with_for_update=True)
-    key = f"stamp:{cp.id}:{ledger.period_bucket(program, ctx.business, utcnow())}"
+    key = f"stamp:{cp.id}:{ledger.period_bucket(program, business, at)}"
     event = ledger.append(
-        db, cp, LedgerKind.STAMP, 1, key, staff_id=ctx.staff.id, service_id=service_id
+        db, cp, LedgerKind.STAMP, 1, key, staff_id=staff_id, service_id=service_id, at=at
     )
     if event is None:
         return {"stamped": False, "reason": "already_stamped_this_period", "stamps": cp.balance}
