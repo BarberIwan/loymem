@@ -41,6 +41,7 @@ from app.security import hash_password, issue_session, verify_password
 from app.services import (
     DomainError,
     audit,
+    campaigns,
     cards,
     inbox,
     ledger,
@@ -775,3 +776,34 @@ class CreditUseIn(BaseModel):
 @api.post("/credits/use")
 def use_credit(body: CreditUseIn, ctx: Staff, db: Db) -> dict[str, object]:
     return memberships.use_at_counter(db, ctx, body.customer_id, body.request_id)
+
+
+# --- Campaigns ------------------------------------------------------------------
+
+
+class CampaignIn(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    audience: str = Field(max_length=30)
+    message: str = Field(min_length=10, max_length=600)
+    holdout_percent: int = Field(default=10, ge=5, le=50)
+    window_days: int = Field(default=30, ge=7, le=90)
+
+
+@api.get("/campaigns")
+def list_campaigns(ctx: Manager, db: Db) -> list[dict[str, object]]:
+    return campaigns.list_campaigns(db, ctx)
+
+
+@api.post("/campaigns", status_code=201)
+def create_campaign(body: CampaignIn, ctx: Manager, db: Db) -> dict[str, str]:
+    return {"id": str(campaigns.create(db, ctx, **body.model_dump()).id)}
+
+
+@api.post("/campaigns/{campaign_id}/send")
+def send_campaign(campaign_id: uuid.UUID, ctx: Manager, db: Db) -> dict[str, int]:
+    return {"sent": campaigns.send(db, ctx, campaign_id)}
+
+
+@api.get("/campaigns/{campaign_id}/report")
+def campaign_report(campaign_id: uuid.UUID, ctx: Manager, db: Db) -> dict[str, object]:
+    return campaigns.report(db, ctx, campaign_id)

@@ -646,6 +646,49 @@ class ProviderConnection(Base):
     created_at: Mapped[datetime] = _created()
 
 
+class Campaign(Base):
+    """A message to a group of customers, with a control group that gets nothing.
+
+    The control group is what makes an effect claim possible at all; the report
+    compares the two groups and says "not demonstrable" unless the difference holds.
+    """
+
+    __tablename__ = "campaigns"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    audience: Mapped[str] = mapped_column(String(30), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    holdout_percent: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=10)
+    window_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=30)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint("holdout_percent between 5 and 50", name="holdout_range"),
+        CheckConstraint("window_days between 7 and 90", name="window_range"),
+    )
+
+
+class CampaignMember(Base):
+    __tablename__ = "campaign_members"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    campaign_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("campaigns.id"), nullable=False)
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    holdout: Mapped[bool] = mapped_column(nullable=False)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("campaign_id", "customer_id", name="uq_campaign_member"),
+        # A control-group member can never have been sent anything.
+        CheckConstraint("not (holdout and sent_at is not null)", name="holdout_never_sent"),
+    )
+
+
 class AuditEntry(Base):
     __tablename__ = "audit_log"
 

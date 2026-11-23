@@ -51,7 +51,10 @@
     "payment_provider_error": "Payment does not work right now. Try again shortly.",
     "no_active_membership": "No active membership.",
     "no_credits_left": "No credits left.",
-    "subscription_not_found": "This membership does not exist."
+    "subscription_not_found": "This membership does not exist.",
+    "campaign_already_sent": "This campaign was already sent.",
+    "unknown_audience": "Choose who the campaign is for.",
+    "campaign_not_found": "This campaign does not exist."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -107,7 +110,8 @@
     "settings": "Settings",
     "today": "Today",
     "slots": "Free slots",
-    "plans": "Memberships"
+    "plans": "Memberships",
+    "campaigns": "Campaigns"
   },
   "scan": {
     "title": "Scan",
@@ -398,5 +402,31 @@
     "emptyTitle": "No plans yet",
     "emptyBody": "Start with one membership that suits your regulars.",
     "emptyExample": "Example: Haircut membership, 35 euros a month, 2 haircuts."
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "lead": "Send a message to a group of customers. A small share deliberately gets nothing, so you can see whether the message really did something.",
+    "new": "New campaign",
+    "name": "Name",
+    "audience": "Who",
+    "a_due_for_visit": "Due for a visit",
+    "a_lapsed_60": "Not seen for over 60 days",
+    "a_all_consented": "Everyone who wants messages",
+    "message": "Message",
+    "holdout": "Control group (percent who get nothing)",
+    "window": "Measure over (days)",
+    "create": "Prepare",
+    "consentNote": "Only customers who said yes to messages themselves and have an email address.",
+    "size": "{size} customers, {control} of them in the control group",
+    "send": "Send",
+    "sentOn": "Sent on {date}",
+    "r_window_open": "The measuring period runs until {date}.",
+    "r_too_small": "Too few customers to see an effect. Only count what happened.",
+    "r_not_demonstrable": "No demonstrable effect. Customers who got the message did not clearly come back more often than the control group.",
+    "r_demonstrable": "Demonstrable effect: an estimated {extra} extra visits from this message.",
+    "observed": "Seen: {returned} of {sent} came back. Control group: {control_returned} of {control}.",
+    "emptyTitle": "No campaigns yet",
+    "emptyBody": "Start with customers who are due for a visit. A short, personal sentence with your booking link works best.",
+    "emptyExample": "Example: Hi, it has been a while. You are welcome, book at barberiwan.nl."
   }
 }
