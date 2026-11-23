@@ -17,6 +17,9 @@ SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 def csrf_guard(request: Request, x_loymem: str | None = Header(default=None)) -> None:
     """A form on another site cannot set a custom header; a fetch from ours does."""
+    # Booking systems call the webhook from their servers; it is signed instead.
+    if request.url.path.startswith("/api/v1/hooks/"):
+        return
     if request.method not in SAFE_METHODS and x_loymem != "1":
         raise HTTPException(status_code=403, detail="missing_header")
 

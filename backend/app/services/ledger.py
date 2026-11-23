@@ -41,6 +41,7 @@ def append(
     reward_id: uuid.UUID | None = None,
     reverses_id: uuid.UUID | None = None,
     reason: str | None = None,
+    at: datetime | None = None,
 ) -> uuid.UUID | None:
     event_id = uuid.uuid4()
     stmt = (
@@ -57,7 +58,7 @@ def append(
             reward_id=reward_id,
             reverses_id=reverses_id,
             reason=reason,
-            created_at=utcnow(),
+            created_at=at or utcnow(),
         )
         .on_conflict_do_nothing()
         .returning(LedgerEvent.id)

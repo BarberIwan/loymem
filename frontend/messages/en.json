@@ -32,7 +32,9 @@
     "already_exists": "This already exists.",
     "no_consent_or_contact": "This customer does not want messages, or there is no email address.",
     "opportunity_gone": "This opportunity is gone. Refresh the list.",
-    "message_length": "The message is too short or too long."
+    "message_length": "The message is too short or too long.",
+    "mapping_invalid": "Check the fields: appointment number, status and phone or email are needed.",
+    "webhook_not_set_up": "Turn the connection on first."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -203,5 +205,33 @@
     "kindDue": "Return",
     "kindReward": "Reward",
     "kindInPerson": "In person"
+  },
+  "webhook": {
+    "title": "Connect your booking system",
+    "lead": "Let your booking system report a completed appointment. The customer then gets a stamp without a scan. Works with any system that can send a signed webhook.",
+    "setUp": "Turn on",
+    "rotate": "Create new key",
+    "url": "Address for your booking system",
+    "secret": "Key",
+    "secretOnce": "Copy the key now. It is shown only once.",
+    "mapping": "Fields",
+    "mappingHint": "Where are the details in your booking system's message? Use dots for nested fields, for example customer.phone.",
+    "completed": "Status that means completed",
+    "completedHint": "Several are fine, separated by commas. Only these give a stamp.",
+    "f_appointment_id": "Appointment number",
+    "f_status": "Status",
+    "f_customer_email": "Customer email",
+    "f_customer_phone": "Customer phone",
+    "f_service": "Service",
+    "f_ended_at": "End time",
+    "active": "Connection on",
+    "deliveries": "Latest messages",
+    "noDeliveries": "No messages received yet.",
+    "o_stamped": "Stamp given",
+    "o_duplicate": "Already stamped",
+    "o_not_completion": "Not a completed appointment",
+    "o_unmatched": "Unknown customer",
+    "o_invalid": "Unreadable",
+    "o_out_of_range": "Date out of range"
   }
 }

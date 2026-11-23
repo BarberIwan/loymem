@@ -5,7 +5,7 @@ import uuid
 import zipfile
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
 from sqlalchemy import select, text
@@ -32,7 +32,7 @@ from app.models import (
     StaffMember,
 )
 from app.security import hash_password, issue_session, verify_password
-from app.services import DomainError, audit, cards, inbox, ledger, owner
+from app.services import DomainError, audit, cards, inbox, ledger, owner, webhooks
 from app.services.brand import card_palette
 from app.services.cards import StaffContext, scan_token_for
 from app.services.rhythm import visit_statuses
@@ -498,3 +498,43 @@ def add_staff(body: StaffIn, ctx: Owner, db: Db) -> dict[str, str]:
         db, ctx.business.id, "staff.added", "staff", s.id, ctx.staff.id, role=body.role.value
     )
     return {"id": str(s.id)}
+
+
+# --- Booking systems: generic webhook ----------------------------------------
+
+
+@api.post("/hooks/{slug}/appointments")
+async def appointment_webhook(
+    slug: str,
+    request: Request,
+    db: Db,
+    x_loymem_timestamp: Annotated[str | None, Header()] = None,
+    x_loymem_signature: Annotated[str | None, Header()] = None,
+) -> dict[str, str]:
+    body = await request.body()
+    if len(body) > 64_000:
+        raise DomainError("payload_too_large", 413)
+    b = business_by_slug(db, slug)
+    outcome = webhooks.receive(db, b, body, x_loymem_timestamp, x_loymem_signature)
+    return {"outcome": outcome}
+
+
+@api.get("/webhook")
+def get_webhook(ctx: Owner, db: Db) -> dict[str, object]:
+    return webhooks.view(db, ctx)
+
+
+@api.post("/webhook/secret")
+def rotate_webhook_secret(ctx: Owner, db: Db) -> dict[str, str]:
+    return {"secret": webhooks.rotate_secret(db, ctx)}
+
+
+class WebhookIn(BaseModel):
+    mapping: dict[str, object] | None = None
+    active: bool | None = None
+
+
+@api.patch("/webhook")
+def update_webhook(body: WebhookIn, ctx: Owner, db: Db) -> dict[str, object]:
+    webhooks.update(db, ctx, body.mapping, body.active)
+    return webhooks.view(db, ctx)

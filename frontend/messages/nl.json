@@ -32,7 +32,9 @@
     "already_exists": "Dit bestaat al.",
     "no_consent_or_contact": "Deze klant wil geen berichten, of er is geen e-mailadres.",
     "opportunity_gone": "Deze kans is er niet meer. Ververs de lijst.",
-    "message_length": "Het bericht is te kort of te lang."
+    "message_length": "Het bericht is te kort of te lang.",
+    "mapping_invalid": "Controleer de velden: afspraaknummer, status en telefoon of e-mail zijn nodig.",
+    "webhook_not_set_up": "Zet de koppeling eerst aan."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -203,5 +205,33 @@
     "kindDue": "Terugkeer",
     "kindReward": "Beloning",
     "kindInPerson": "Persoonlijk"
+  },
+  "webhook": {
+    "title": "Koppeling met je agenda",
+    "lead": "Laat je agenda een afgeronde afspraak doorgeven. Dan krijgt de klant zijn stempel ook zonder scan. Werkt met elk systeem dat een beveiligde webhook kan sturen.",
+    "setUp": "Koppeling aanzetten",
+    "rotate": "Nieuwe sleutel maken",
+    "url": "Adres voor je agenda",
+    "secret": "Sleutel",
+    "secretOnce": "Kopieer de sleutel nu. Hij wordt maar één keer getoond.",
+    "mapping": "Velden",
+    "mappingHint": "Waar staan de gegevens in het bericht van je agenda? Gebruik punten voor diepere velden, bijvoorbeeld customer.phone.",
+    "completed": "Status die afgerond betekent",
+    "completedHint": "Meerdere mag, gescheiden door komma's. Alleen deze status geeft een stempel.",
+    "f_appointment_id": "Afspraaknummer",
+    "f_status": "Status",
+    "f_customer_email": "E-mail klant",
+    "f_customer_phone": "Telefoon klant",
+    "f_service": "Behandeling",
+    "f_ended_at": "Eindtijd",
+    "active": "Koppeling aan",
+    "deliveries": "Laatste berichten",
+    "noDeliveries": "Nog geen berichten ontvangen.",
+    "o_stamped": "Stempel gegeven",
+    "o_duplicate": "Al gestempeld",
+    "o_not_completion": "Geen afgeronde afspraak",
+    "o_unmatched": "Klant onbekend",
+    "o_invalid": "Onleesbaar",
+    "o_out_of_range": "Datum buiten bereik"
   }
 }

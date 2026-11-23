@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Pass } from "@/components/Pass";
 import { Qr } from "@/components/Qr";
+import { WebhookPanel } from "@/components/WebhookPanel";
 import { Button, Field, Notice, Panel, uiStyles } from "@/components/ui";
 import { api, type Palette } from "@/lib/api";
 import { cardText } from "@/lib/contrast";
@@ -172,6 +173,7 @@ export default function SettingsPage() {
               </form>
             </div>
           </Panel>
+          <WebhookPanel />
           <Panel title={t("signupTitle")}>
             <div className={`${w.stack} ${w.centre}`} id="aanmelden">
               <p className={w.muted}>{t("signupHint")}</p>
