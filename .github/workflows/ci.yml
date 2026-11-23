@@ -21,11 +21,14 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
-        ports: ["5433:5432"]
+        # Random host port: other runners on this server use their own Postgres.
+        ports: ["5432"]
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
     env:
       PGPASSWORD: postgres
+      PGPORT: ${{ job.services.postgres.ports['5432'] }}
+      LOYMEM_TEST_DB_HOST: localhost:${{ job.services.postgres.ports['5432'] }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,7 +39,7 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Database roles
         run: |
-          P="psql -h localhost -p 5433 -U postgres -q"
+          P="docker exec ${{ job.services.postgres.id }} psql -U postgres -q"
           $P -c "create role loymem_owner login password 'loymem_owner' bypassrls; create role loymem_app login password 'loymem_app';"
           $P -c "create database loymem_test owner loymem_owner;"
           $P -d loymem_test -c "alter schema public owner to loymem_owner; grant usage on schema public to loymem_app;"
