@@ -59,3 +59,11 @@ wordt alleen gelogd. Sms en WhatsApp staan uit tot het besluit uit §13.
 `docs/spec/` bevat de opdracht en de drie productdocumenten zoals ze zijn
 aangeleverd. De statische toetsen op tekst en herkomst slaan die map over; het
 zijn bronstukken, geen producttekst.
+
+## LM-10 Mail via gewone SMTP
+Versturen loopt via de uitgaande wachtrij en SMTP met STARTTLS, zodat elke
+maildienst werkt zodra adres en sleutels gezet zijn (`LOYMEM_EMAIL_DELIVERY=smtp`,
+`LOYMEM_SMTP_*`, `LOYMEM_MAIL_FROM_ADDRESS`). Berichten waar een klant nee tegen
+kan zeggen hebben een afmeldlink en `List-Unsubscribe`. De link opent een pagina
+die zelf afmeldt, zodat linkscanners van mailprogramma's niemand afmelden.
+Vijf mislukte pogingen, dan blijft het bericht staan met de fout erbij.

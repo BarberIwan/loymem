@@ -428,5 +428,10 @@
     "emptyTitle": "No campaigns yet",
     "emptyBody": "Start with customers who are due for a visit. A short, personal sentence with your booking link works best.",
     "emptyExample": "Example: Hi, it has been a while. You are welcome, book at barberiwan.nl."
+  },
+  "unsubscribe": {
+    "working": "One moment.",
+    "done": "You are unsubscribed. You will not get these messages anymore. Your stamps and rewards stay as they are.",
+    "failed": "This unsubscribe link does not work. You can also turn messages off on your card."
   }
 }

@@ -128,6 +128,7 @@ def send(db: Session, ctx: StaffContext, campaign_id: uuid.UUID) -> int:
             continue
         db.add(
             OutboxMessage(
+                customer_id=customer.id,
                 business_id=ctx.business.id,
                 channel="email",
                 recipient=customer.email,
