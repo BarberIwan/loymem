@@ -97,9 +97,18 @@ class Business(Base):
     brand_colour: Mapped[str] = mapped_column(String(7), nullable=False, default="#1F4A38")
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="Europe/Amsterdam")
     booking_url: Mapped[str | None] = mapped_column(String(500))
+    # Retention inbox: how many opportunities a day, how long "ignore" lasts.
+    inbox_daily_limit: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=10, server_default="10"
+    )
+    inbox_ignore_days: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=30, server_default="30"
+    )
     created_at: Mapped[datetime] = _created()
 
     __table_args__ = (
+        CheckConstraint("inbox_daily_limit between 1 and 50", name="inbox_daily_limit_range"),
+        CheckConstraint("inbox_ignore_days between 1 and 365", name="inbox_ignore_days_range"),
         CheckConstraint("brand_colour ~ '^#[0-9A-Fa-f]{6}$'", name="brand_colour_hex"),
         CheckConstraint("slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="slug_format"),
     )
@@ -317,6 +326,34 @@ class OutboxMessage(Base):
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created()
+
+
+class InboxDecision(enum.StrEnum):
+    SENT = "sent"
+    DONE = "done"
+    IGNORED = "ignored"
+
+
+class InboxEntry(Base):
+    """What the owner did with an opportunity. Hides it until ``hidden_until``."""
+
+    __tablename__ = "inbox_entries"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    decision: Mapped[InboxDecision] = mapped_column(
+        _enum(InboxDecision, "inbox_decision"), nullable=False
+    )
+    hidden_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    staff_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+    message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        Index("ix_inbox_lookup", "business_id", "customer_id", "kind", "hidden_until"),
+    )
 
 
 class AuditEntry(Base):

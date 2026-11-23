@@ -25,6 +25,8 @@ type Settings = {
   program_name: string;
   stamps_required: number;
   reward_description: string;
+  inbox_daily_limit: number;
+  inbox_ignore_days: number;
   signup_url: string;
   services: { id: string; name: string; return_period_days: number }[];
 };
@@ -131,6 +133,18 @@ export default function SettingsPage() {
                   {common("save")}
                 </Button>
                 {status && <Notice tone={status.tone}>{status.text}</Notice>}
+              </div>
+            </div>
+          </Panel>
+          <Panel title={t("inboxTitle")}>
+            <div className={w.stack}>
+              <p className={w.muted}>{t("inboxHint")}</p>
+              <Field label={t("dailyLimit")} type="number" min={1} max={50} value={v.inbox_daily_limit} onChange={set("inbox_daily_limit")} />
+              <Field label={t("ignoreDays")} type="number" min={1} max={365} value={v.inbox_ignore_days} onChange={set("inbox_ignore_days")} />
+              <div className={w.actions}>
+                <Button type="button" onClick={save} disabled={Object.keys(draft).length === 0}>
+                  {common("save")}
+                </Button>
               </div>
             </div>
           </Panel>

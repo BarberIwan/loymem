@@ -167,7 +167,12 @@ class Clock:
 @pytest.fixture
 def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
     c = Clock()
-    for mod in ("app.services.cards", "app.services.ledger", "app.services.owner"):
+    for mod in (
+        "app.services.cards",
+        "app.services.ledger",
+        "app.services.owner",
+        "app.services.inbox",
+    ):
         monkeypatch.setattr(f"{mod}.utcnow", c)
     return c
 

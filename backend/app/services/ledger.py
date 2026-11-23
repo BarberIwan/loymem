@@ -125,6 +125,7 @@ def convert_to_rewards(
             business_id=cp.business_id,
             customer_program_id=cp.id,
             description=program.reward_description,
+            earned_at=utcnow(),
         )
         key = f"earn:{trigger_event}:{n}"
         if (
