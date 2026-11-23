@@ -29,7 +29,10 @@
     "csv_needs_email_or_phone": "The file has no email or phone column.",
     "csv_not_utf8": "Save the file as UTF-8 CSV and try again.",
     "link_invalid_or_expired": "This link no longer works. Ask for a new one.",
-    "already_exists": "This already exists."
+    "already_exists": "This already exists.",
+    "no_consent_or_contact": "This customer does not want messages, or there is no email address.",
+    "opportunity_gone": "This opportunity is gone. Refresh the list.",
+    "message_length": "The message is too short or too long."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -82,7 +85,8 @@
   "nav": {
     "scan": "Scan",
     "overview": "Overview",
-    "settings": "Settings"
+    "settings": "Settings",
+    "today": "Today"
   },
   "scan": {
     "title": "Scan",
@@ -165,6 +169,39 @@
     "signupHint": "Print this code and put it by the till. Customers scan it and have their card in half a minute.",
     "print": "Print",
     "daysValue": "{count, plural, one {# day} other {# days}}",
-    "custom": "Own colour"
+    "custom": "Own colour",
+    "inboxTitle": "Today",
+    "dailyLimit": "Opportunities a day",
+    "ignoreDays": "Ignore lasts (days)",
+    "inboxHint": "A calm list gets done. Ten a day is a good start."
+  },
+  "inbox": {
+    "title": "Today",
+    "lead": "{count, plural, one {# opportunity} other {# opportunities}} today, at most {limit}. Most important first.",
+    "dueReason": "No visit registered since {date}.",
+    "dueDetail": "{service}. Usually back after {days} days.",
+    "dueDetailNoService": "Last visit {days} days ago.",
+    "rhythm": "Their own average is every {days} days.",
+    "rewardReason": "Earned {reward} on {date} and has not used it yet.",
+    "messageDue": "Hi {name}, it has been a while. Fancy a visit to {business}?",
+    "messageReward": "Hi {name}, there is still {reward} waiting for you at {business}.",
+    "messageLink": "Book here: {url}",
+    "send": "Send email",
+    "edit": "Edit",
+    "done": "Talked",
+    "ignore": "Ignore for {days} days",
+    "inPerson": "No permission for messages. Mention it to {name} next time you meet.",
+    "messageLabel": "Message to {name}",
+    "sent": "Sent to {name}.",
+    "handled": "{name} is marked as handled.",
+    "ignored": "{name} comes back in {days} days if it still applies.",
+    "emptyTitle": "Nothing to do today",
+    "emptyBody": "This shows who is due for a visit or has a reward waiting. In Settings, set after how many days customers usually come back for each service.",
+    "emptyExample": "Example: Sam. No visit registered since 12 October. Haircut, usually back after 28 days.",
+    "emptyAction": "Go to settings",
+    "customer": "Customer",
+    "kindDue": "Return",
+    "kindReward": "Reward",
+    "kindInPerson": "In person"
   }
 }

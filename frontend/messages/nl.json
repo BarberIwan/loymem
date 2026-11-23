@@ -29,7 +29,10 @@
     "csv_needs_email_or_phone": "Het bestand mist een kolom email of telefoon.",
     "csv_not_utf8": "Sla het bestand op als CSV in UTF-8 en probeer het opnieuw.",
     "link_invalid_or_expired": "Deze link werkt niet meer. Vraag een nieuwe aan.",
-    "already_exists": "Dit bestaat al."
+    "already_exists": "Dit bestaat al.",
+    "no_consent_or_contact": "Deze klant wil geen berichten, of er is geen e-mailadres.",
+    "opportunity_gone": "Deze kans is er niet meer. Ververs de lijst.",
+    "message_length": "Het bericht is te kort of te lang."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -82,7 +85,8 @@
   "nav": {
     "scan": "Scannen",
     "overview": "Overzicht",
-    "settings": "Instellingen"
+    "settings": "Instellingen",
+    "today": "Vandaag"
   },
   "scan": {
     "title": "Scannen",
@@ -165,6 +169,39 @@
     "signupHint": "Print deze code en zet hem bij de kassa. Klanten scannen hem en hebben hun kaart in een halve minuut.",
     "print": "Afdrukken",
     "daysValue": "{count, plural, one {# dag} other {# dagen}}",
-    "custom": "Eigen kleur"
+    "custom": "Eigen kleur",
+    "inboxTitle": "Vandaag",
+    "dailyLimit": "Kansen per dag",
+    "ignoreDays": "Negeren duurt (dagen)",
+    "inboxHint": "Een rustige lijst wordt afgewerkt. Tien per dag is een goed begin."
+  },
+  "inbox": {
+    "title": "Vandaag",
+    "lead": "{count, plural, one {# kans} other {# kansen}} vandaag, hoogstens {limit}. De belangrijkste eerst.",
+    "dueReason": "Geen bezoek geregistreerd sinds {date}.",
+    "dueDetail": "{service}. Komt normaal na {days} dagen terug.",
+    "dueDetailNoService": "Laatste bezoek {days} dagen geleden.",
+    "rhythm": "Zelf gemiddeld om de {days} dagen.",
+    "rewardReason": "Verdiende {reward} op {date} en heeft die nog niet gebruikt.",
+    "messageDue": "Hoi {name}, het is alweer even geleden. Zin om langs te komen bij {business}?",
+    "messageReward": "Hoi {name}, er staat bij {business} nog {reward} voor je klaar.",
+    "messageLink": "Boeken kan hier: {url}",
+    "send": "Verstuur e-mail",
+    "edit": "Aanpassen",
+    "done": "Gesproken",
+    "ignore": "Negeer {days} dagen",
+    "inPerson": "Geen toestemming voor berichten. Spreek {name} aan als je elkaar ziet.",
+    "messageLabel": "Bericht aan {name}",
+    "sent": "Verstuurd aan {name}.",
+    "handled": "{name} staat op afgehandeld.",
+    "ignored": "{name} komt over {days} dagen terug als het dan nog speelt.",
+    "emptyTitle": "Niets te doen vandaag",
+    "emptyBody": "Hier verschijnt wie toe is aan een bezoek of een beloning laat liggen. Zet bij Instellingen per behandeling na hoeveel dagen klanten meestal terugkomen.",
+    "emptyExample": "Voorbeeld: Sam. Geen bezoek geregistreerd sinds 12 oktober. Knippen, meestal na 28 dagen terug.",
+    "emptyAction": "Naar instellingen",
+    "customer": "Klant",
+    "kindDue": "Terugkeer",
+    "kindReward": "Beloning",
+    "kindInPerson": "Persoonlijk"
   }
 }

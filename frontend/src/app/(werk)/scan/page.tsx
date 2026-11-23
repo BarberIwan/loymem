@@ -33,13 +33,13 @@ export default function ScanPage() {
   const nav = useTranslations("nav");
   const me = useMe();
   const [tab, setTab] = useState<"stamp" | "redeem">("stamp");
-  const back = me && me.role !== "staff" ? "/overzicht" : null;
+  const back = me && me.role !== "staff" ? "/vandaag" : null;
 
   return (
     <div className={s.screen}>
       <header className={s.top}>
         <span>{me?.business.name}</span>
-        {back && <a href={back}>{nav("overview")}</a>}
+        {back && <a href={back}>{nav("today")}</a>}
       </header>
       <div className={s.body}>{tab === "stamp" ? <StampFlow /> : <RedeemFlow />}</div>
       <div className={s.tabs} role="tablist">

@@ -24,7 +24,7 @@ export default function LoginPage() {
         method: "POST",
         json: { email: form.get("email"), password: form.get("password") },
       });
-      router.replace(r.role === "staff" ? "/scan" : "/overzicht");
+      router.replace(r.role === "staff" ? "/scan" : "/vandaag");
     } catch (e) {
       setError(errorText(e));
       setBusy(false);

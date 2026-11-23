@@ -25,13 +25,14 @@ from app.models import (
     Business,
     ConsentPurpose,
     CustomerSource,
+    InboxDecision,
     Program,
     Role,
     Service,
     StaffMember,
 )
 from app.security import hash_password, issue_session, verify_password
-from app.services import DomainError, audit, cards, ledger, owner
+from app.services import DomainError, audit, cards, inbox, ledger, owner
 from app.services.brand import card_palette
 from app.services.cards import StaffContext, scan_token_for
 from app.services.rhythm import visit_statuses
@@ -269,6 +270,28 @@ def reverse(event_id: uuid.UUID, body: ReverseIn, ctx: Manager, db: Db) -> dict[
     return {"reversal_id": str(new_id)}
 
 
+@api.get("/inbox")
+def get_inbox(ctx: Manager, db: Db) -> dict[str, object]:
+    items = inbox.opportunities(db, ctx)
+    return {
+        "items": [o.as_dict(ctx.business.booking_url) for o in items],
+        "daily_limit": ctx.business.inbox_daily_limit,
+        "ignore_days": ctx.business.inbox_ignore_days,
+    }
+
+
+class InboxDecisionIn(BaseModel):
+    customer_id: uuid.UUID
+    kind: str = Field(max_length=40)
+    decision: InboxDecision
+    message: str | None = Field(default=None, max_length=600)
+
+
+@api.post("/inbox/decide")
+def decide_inbox(body: InboxDecisionIn, ctx: Manager, db: Db) -> dict[str, object]:
+    return inbox.decide(db, ctx, body.customer_id, body.kind, body.decision, body.message)
+
+
 @api.get("/due")
 def due(ctx: Manager, db: Db) -> list[dict[str, object]]:
     return [
@@ -324,6 +347,8 @@ class SettingsIn(BaseModel):
     program_name: str | None = Field(default=None, min_length=2, max_length=80)
     stamps_required: int | None = Field(default=None, ge=2, le=30)
     reward_description: str | None = Field(default=None, min_length=2, max_length=120)
+    inbox_daily_limit: int | None = Field(default=None, ge=1, le=50)
+    inbox_ignore_days: int | None = Field(default=None, ge=1, le=365)
 
     @field_validator("booking_url")
     @classmethod
@@ -349,6 +374,8 @@ def get_settings_route(ctx: Manager, db: Db) -> dict[str, object]:
         "program_name": p.name,
         "stamps_required": p.stamps_required,
         "reward_description": p.reward_description,
+        "inbox_daily_limit": b.inbox_daily_limit,
+        "inbox_ignore_days": b.inbox_ignore_days,
         "signup_url": f"{get_settings().public_base_url}/aanmelden/{b.slug}",
         "services": [
             {
@@ -369,6 +396,9 @@ def update_settings(body: SettingsIn, ctx: Owner, db: Db) -> dict[str, object]:
     p = db.get(Program, cards.active_program(db, b.id).id)
     assert p is not None
     changes = body.model_dump(exclude_unset=True)
+    for field in ("inbox_daily_limit", "inbox_ignore_days"):
+        if field in changes:
+            setattr(b, field, changes[field])
     for field in ("name", "brand_colour"):
         if field in changes:
             setattr(b, field, changes[field].upper() if field == "brand_colour" else changes[field])
