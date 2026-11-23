@@ -206,7 +206,10 @@
     "inboxTitle": "Today",
     "dailyLimit": "Opportunities a day",
     "ignoreDays": "Ignore lasts (days)",
-    "inboxHint": "A calm list gets done. Ten a day is a good start."
+    "inboxHint": "A calm list gets done. Ten a day is a good start.",
+    "plansTitle": "Memberships and bundles",
+    "plansHint": "Let regulars pay ahead, into your own payment account.",
+    "plansOpen": "Manage memberships"
   },
   "inbox": {
     "title": "Today",
@@ -379,7 +382,10 @@
     "cancel": "Cancel",
     "cancelConfirm": "Are you sure? The membership stops at the end of this period.",
     "cancelYes": "Yes, cancel",
-    "keep": "No, keep it"
+    "keep": "No, keep it",
+    "charge": "You pay {price} now on the payment page. After that we charge every month on the same day until you cancel. After cancelling you can still use it until the end of the paid month.",
+    "chargeOnce": "You pay {price} once now on the payment page.",
+    "acceptFirst": "First tick that you have read the terms."
   },
   "plans": {
     "title": "Memberships",
@@ -404,7 +410,13 @@
     "versionNote": "Change the price or terms and the plan gets a new version. Whoever bought already keeps the old one.",
     "emptyTitle": "No plans yet",
     "emptyBody": "Start with one membership that suits your regulars.",
-    "emptyExample": "Example: Haircut membership, 35 euros a month, 2 haircuts."
+    "emptyExample": "Example: Haircut membership, 35 euros a month, 2 haircuts.",
+    "termsHeading": "Terms for the customer",
+    "unusedPh": "For example: unused haircuts expire at the end of the month.",
+    "noShowPh": "For example: whoever does not show without cancelling loses that haircut.",
+    "pausePh": "For example: pausing is possible one month a year.",
+    "summaryMonth": "{price} a month · {count, plural, one {# visit} other {# visits}} · terms version {version}",
+    "summaryOnce": "{price} once · {count, plural, one {# visit} other {# visits}} · terms version {version}"
   },
   "campaigns": {
     "title": "Campaigns",
@@ -416,8 +428,8 @@
     "a_lapsed_60": "Not seen for over 60 days",
     "a_all_consented": "Everyone who wants messages",
     "message": "Message",
-    "holdout": "Control group (percent who get nothing)",
-    "window": "Measure over (days)",
+    "holdout": "Hold back a share to measure the effect (percent)",
+    "window": "How long we measure (days)",
     "create": "Prepare",
     "consentNote": "Only customers who said yes to messages themselves and have an email address.",
     "size": "{size} customers, {control} of them in the control group",
@@ -430,7 +442,11 @@
     "observed": "Seen: {returned} of {sent} came back. Control group: {control_returned} of {control}.",
     "emptyTitle": "No campaigns yet",
     "emptyBody": "Start with customers who are due for a visit. A short, personal sentence with your booking link works best.",
-    "emptyExample": "Example: Hi, it has been a while. You are welcome, book at barberiwan.nl."
+    "emptyExample": "Example: Hi, it has been a while. You are welcome, book at barberiwan.nl.",
+    "holdoutHint": "These customers get nothing. That is how you will see whether the message really did something.",
+    "windowHint": "We count who comes back within this time.",
+    "sendTo": "Send to {count, plural, one {# customer} other {# customers}}",
+    "tooSmallNote": "With this few customers an effect cannot be seen. You can still send."
   },
   "unsubscribe": {
     "working": "One moment.",

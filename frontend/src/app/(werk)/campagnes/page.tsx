@@ -90,8 +90,9 @@ export default function CampaignsPage() {
                 ) : (
                   <div className={s.actions}>
                     <Button type="button" onClick={() => run(() => api(`/campaigns/${c.id}/send`, { method: "POST" }))} disabled={c.size - c.control === 0}>
-                      {t("send")}
+                      {t("sendTo", { count: c.size - c.control })}
                     </Button>
+                    {c.control < 30 && <p className={s.detail}>{t("tooSmallNote")}</p>}
                   </div>
                 )}
               </li>
@@ -125,8 +126,8 @@ export default function CampaignsPage() {
             <textarea className={s.textarea} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} required minLength={10} maxLength={600} />
           </label>
           <div className={w.pair}>
-            <Field label={t("holdout")} type="number" min={5} max={50} value={f.holdout_percent} onChange={(e) => setF({ ...f, holdout_percent: Number(e.target.value) })} />
-            <Field label={t("window")} type="number" min={7} max={90} value={f.window_days} onChange={(e) => setF({ ...f, window_days: Number(e.target.value) })} />
+            <Field label={t("holdout")} help={t("holdoutHint")} type="number" min={5} max={50} value={f.holdout_percent} onChange={(e) => setF({ ...f, holdout_percent: Number(e.target.value) })} />
+            <Field label={t("window")} help={t("windowHint")} type="number" min={7} max={90} value={f.window_days} onChange={(e) => setF({ ...f, window_days: Number(e.target.value) })} />
           </div>
           <div className={w.actions}>
             <Button type="submit">{t("create")}</Button>

@@ -206,7 +206,10 @@
     "inboxTitle": "Vandaag",
     "dailyLimit": "Kansen per dag",
     "ignoreDays": "Negeren duurt (dagen)",
-    "inboxHint": "Een rustige lijst wordt afgewerkt. Tien per dag is een goed begin."
+    "inboxHint": "Een rustige lijst wordt afgewerkt. Tien per dag is een goed begin.",
+    "plansTitle": "Abonnementen en bundels",
+    "plansHint": "Vaste klanten vooruit laten betalen, met je eigen betaalaccount.",
+    "plansOpen": "Abonnementen beheren"
   },
   "inbox": {
     "title": "Vandaag",
@@ -379,7 +382,10 @@
     "cancel": "Opzeggen",
     "cancelConfirm": "Weet je het zeker? Het abonnement stopt aan het eind van deze periode.",
     "cancelYes": "Ja, opzeggen",
-    "keep": "Nee, houden"
+    "keep": "Nee, houden",
+    "charge": "Je betaalt nu {price} op de betaalpagina. Daarna schrijven we elke maand op dezelfde dag af, tot je opzegt. Na opzeggen gebruik je het nog tot het eind van de betaalde maand.",
+    "chargeOnce": "Je betaalt nu eenmalig {price} op de betaalpagina.",
+    "acceptFirst": "Vink eerst aan dat je de voorwaarden hebt gelezen."
   },
   "plans": {
     "title": "Abonnementen",
@@ -404,7 +410,13 @@
     "versionNote": "Pas je prijs of voorwaarden aan, dan krijgt het plan een nieuwe versie. Wie al kocht, houdt de oude.",
     "emptyTitle": "Nog geen plannen",
     "emptyBody": "Begin met één abonnement dat bij je vaste klanten past.",
-    "emptyExample": "Voorbeeld: Knipabonnement, 35 euro per maand, 2 knipbeurten."
+    "emptyExample": "Voorbeeld: Knipabonnement, 35 euro per maand, 2 knipbeurten.",
+    "termsHeading": "Voorwaarden voor de klant",
+    "unusedPh": "Bijvoorbeeld: ongebruikte knipbeurten vervallen aan het eind van de maand.",
+    "noShowPh": "Bijvoorbeeld: wie niet komt zonder af te melden, verliest die knipbeurt.",
+    "pausePh": "Bijvoorbeeld: pauzeren kan een maand per jaar.",
+    "summaryMonth": "{price} per maand · {count, plural, one {# bezoek} other {# bezoeken}} · voorwaarden versie {version}",
+    "summaryOnce": "{price} eenmalig · {count, plural, one {# bezoek} other {# bezoeken}} · voorwaarden versie {version}"
   },
   "campaigns": {
     "title": "Campagnes",
@@ -416,8 +428,8 @@
     "a_lapsed_60": "Langer dan 60 dagen niet geweest",
     "a_all_consented": "Iedereen die berichten wil",
     "message": "Bericht",
-    "holdout": "Controlegroep (procent die niets krijgt)",
-    "window": "Meten over (dagen)",
+    "holdout": "Houd een deel achter om het effect te meten (procent)",
+    "window": "Hoe lang meten we (dagen)",
     "create": "Klaarzetten",
     "consentNote": "Alleen klanten die zelf ja zeiden tegen berichten en een e-mailadres hebben.",
     "size": "{size} klanten, waarvan {control} in de controlegroep",
@@ -430,7 +442,11 @@
     "observed": "Gezien: {returned} van {sent} kwamen terug. Controlegroep: {control_returned} van {control}.",
     "emptyTitle": "Nog geen campagnes",
     "emptyBody": "Begin met klanten die toe zijn aan een bezoek. Een korte, persoonlijke zin met je boekingslink werkt het best.",
-    "emptyExample": "Voorbeeld: Hoi, het is alweer even geleden. Je bent welkom, boeken kan via barberiwan.nl."
+    "emptyExample": "Voorbeeld: Hoi, het is alweer even geleden. Je bent welkom, boeken kan via barberiwan.nl.",
+    "holdoutHint": "Deze klanten krijgen niets. Zo zie je straks of het bericht echt iets deed.",
+    "windowHint": "We tellen wie binnen deze tijd terugkomt.",
+    "sendTo": "Verstuur naar {count, plural, one {# klant} other {# klanten}}",
+    "tooSmallNote": "Met zo weinig klanten is een effect niet te zien. Versturen kan wel."
   },
   "unsubscribe": {
     "working": "Even geduld.",

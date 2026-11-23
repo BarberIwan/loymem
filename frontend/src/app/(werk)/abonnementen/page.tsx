@@ -97,7 +97,7 @@ export default function PlansPage() {
                 <span className={s.kind}>{p.kind === "membership" ? t("kindMembership") : t("kindBundle")}</span>
                 <span className={s.name}>{p.name}</span>
                 <p className={s.reason}>
-                  {euros(p.price_cents, locale)} · {p.credits} · v{p.terms_version}
+                  {t(p.kind === "membership" ? "summaryMonth" : "summaryOnce", { price: euros(p.price_cents, locale), count: p.credits, version: p.terms_version })}
                 </p>
                 <p className={s.detail}>{p.unused_policy}</p>
               </li>
@@ -126,10 +126,19 @@ export default function PlansPage() {
             )}
           </div>
           <Field label={t("coolingOff")} type="number" min={14} max={60} value={f.cooling_off_days} onChange={set("cooling_off_days")} />
+          <p className={uiStyles.label}>{t("termsHeading")}</p>
           {(["unused_policy", "no_show_policy", "pause_policy"] as const).map((k) => (
             <label key={k} className={uiStyles.field}>
               <span className={uiStyles.label}>{t(k === "unused_policy" ? "unused" : k === "no_show_policy" ? "noShow" : "pause")}</span>
-              <textarea className={s.textarea} value={f[k]} onChange={set(k)} required minLength={10} maxLength={600} />
+              <textarea
+                className={s.textarea}
+                value={f[k]}
+                onChange={set(k)}
+                required
+                minLength={10}
+                maxLength={600}
+                placeholder={t(k === "unused_policy" ? "unusedPh" : k === "no_show_policy" ? "noShowPh" : "pausePh")}
+              />
             </label>
           ))}
           <p className={w.muted}>{t("versionNote")}</p>
