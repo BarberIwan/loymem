@@ -51,7 +51,10 @@
     "payment_provider_error": "Betalen lukt nu niet. Probeer het zo nog eens.",
     "no_active_membership": "Geen actief abonnement.",
     "no_credits_left": "Geen tegoed meer.",
-    "subscription_not_found": "Dit abonnement bestaat niet."
+    "subscription_not_found": "Dit abonnement bestaat niet.",
+    "campaign_already_sent": "Deze campagne is al verstuurd.",
+    "unknown_audience": "Kies voor wie de campagne is.",
+    "campaign_not_found": "Deze campagne bestaat niet."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -107,7 +110,8 @@
     "settings": "Instellingen",
     "today": "Vandaag",
     "slots": "Vrije plekken",
-    "plans": "Abonnementen"
+    "plans": "Abonnementen",
+    "campaigns": "Campagnes"
   },
   "scan": {
     "title": "Scannen",
@@ -398,5 +402,31 @@
     "emptyTitle": "Nog geen plannen",
     "emptyBody": "Begin met één abonnement dat bij je vaste klanten past.",
     "emptyExample": "Voorbeeld: Knipabonnement, 35 euro per maand, 2 knipbeurten."
+  },
+  "campaigns": {
+    "title": "Campagnes",
+    "lead": "Stuur een bericht aan een groep klanten. Een klein deel krijgt bewust niets, zodat je kunt zien of het bericht echt iets deed.",
+    "new": "Nieuwe campagne",
+    "name": "Naam",
+    "audience": "Wie",
+    "a_due_for_visit": "Toe aan bezoek",
+    "a_lapsed_60": "Langer dan 60 dagen niet geweest",
+    "a_all_consented": "Iedereen die berichten wil",
+    "message": "Bericht",
+    "holdout": "Controlegroep (procent die niets krijgt)",
+    "window": "Meten over (dagen)",
+    "create": "Klaarzetten",
+    "consentNote": "Alleen klanten die zelf ja zeiden tegen berichten en een e-mailadres hebben.",
+    "size": "{size} klanten, waarvan {control} in de controlegroep",
+    "send": "Versturen",
+    "sentOn": "Verstuurd op {date}",
+    "r_window_open": "De meetperiode loopt nog tot {date}.",
+    "r_too_small": "Te weinig klanten om een effect te kunnen zien. Tel alleen wat er gebeurde.",
+    "r_not_demonstrable": "Geen aantoonbaar effect. Klanten die het bericht kregen kwamen niet duidelijk vaker terug dan de controlegroep.",
+    "r_demonstrable": "Aantoonbaar effect: naar schatting {extra} extra bezoeken door dit bericht.",
+    "observed": "Gezien: {returned} van {sent} kwamen terug. Controlegroep: {control_returned} van {control}.",
+    "emptyTitle": "Nog geen campagnes",
+    "emptyBody": "Begin met klanten die toe zijn aan een bezoek. Een korte, persoonlijke zin met je boekingslink werkt het best.",
+    "emptyExample": "Voorbeeld: Hoi, het is alweer even geleden. Je bent welkom, boeken kan via barberiwan.nl."
   }
 }
