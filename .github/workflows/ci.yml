@@ -27,8 +27,6 @@ jobs:
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
     env:
       PGPASSWORD: postgres
-      PGPORT: ${{ job.services.postgres.ports['5432'] }}
-      LOYMEM_TEST_DB_HOST: localhost:${{ job.services.postgres.ports['5432'] }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -51,6 +49,8 @@ jobs:
           mypy app
       - name: Tests
         working-directory: backend
+        env:
+          LOYMEM_TEST_DB_HOST: localhost:${{ job.services.postgres.ports['5432'] }}
         run: pytest -q
 
   frontend:
