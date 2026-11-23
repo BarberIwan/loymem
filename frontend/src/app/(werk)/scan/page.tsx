@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
+import { type Benefit, useBenefitText } from "@/lib/benefit";
 import { useErrorText } from "@/lib/useErrorText";
 import { useMe } from "@/lib/useMe";
 
@@ -16,9 +17,10 @@ type Found = {
   program: { stamps_required: number; reward: string };
   rewards: { id: string; description: string }[];
   services: { id: string; name: string }[];
+  claimed_offer: Benefit | null;
 };
 
-type StampResult = { stamped: boolean; stamps: number; rewards_earned?: number };
+type StampResult = { stamped: boolean; stamps: number; rewards_earned?: number; applied_offer: Benefit | null };
 
 type Detector = { detect: (v: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
 declare global {
@@ -56,6 +58,7 @@ export default function ScanPage() {
 
 function StampFlow() {
   const t = useTranslations("scan");
+  const benefitText = useBenefitText();
   const errorText = useErrorText();
   const [found, setFound] = useState<Found | null>(null);
   const [service, setService] = useState<string | null>(null);
@@ -116,10 +119,12 @@ function StampFlow() {
         <span className={s.label}>{t("customer")}</span>
         <span className={s.name}>{name}</span>
         <span className={s.meta}>{`${found.stamps} / ${total}`}</span>
+        {found.claimed_offer && !result && <span className={s.offer}>{t("offerClaimed", { benefit: benefitText(found.claimed_offer) })}</span>}
       </div>
       {result ? (
         <div className={s.result} role="status">
           <span className={s.resultTitle}>{result.stamped ? t("stamped") : t("already", { name })}</span>
+          {result.applied_offer && <span className={s.offer}>{t("offerApplied", { benefit: benefitText(result.applied_offer) })}</span>}
           {result.stamped && (
             <span className={s.meta}>
               {result.rewards_earned

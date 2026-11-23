@@ -80,6 +80,7 @@ class LedgerKind(enum.StrEnum):
     REWARD_EARNED = "reward_earned"
     REWARD_REDEEMED = "reward_redeemed"
     REVERSAL = "reversal"
+    BONUS = "bonus"
 
 
 class RewardStatus(enum.StrEnum):
@@ -354,6 +355,120 @@ class InboxEntry(Base):
     __table_args__ = (
         Index("ix_inbox_lookup", "business_id", "customer_id", "kind", "hidden_until"),
     )
+
+
+class WaitlistEntry(Base):
+    """A customer who wants to hear about free slots, with their preferences."""
+
+    __tablename__ = "waitlist_entries"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id"), nullable=False, unique=True
+    )
+    # Null means any service.
+    service_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("services.id"))
+    # Bit 0 is Monday ... bit 6 is Sunday.
+    days_mask: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=127)
+    # Bit 0 morning (before 12), bit 1 afternoon (12-17), bit 2 evening (from 17).
+    dayparts_mask: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=7)
+    min_notice_minutes: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=60)
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint("days_mask between 1 and 127", name="days_mask_range"),
+        CheckConstraint("dayparts_mask between 1 and 7", name="dayparts_mask_range"),
+        CheckConstraint("min_notice_minutes between 0 and 1440", name="notice_range"),
+    )
+
+
+class SlotBenefit(enum.StrEnum):
+    STAMPS = "stamps"
+    UPGRADE = "upgrade"
+    DISCOUNT = "discount"
+
+
+class SlotStatus(enum.StrEnum):
+    OPEN = "open"
+    FILLED = "filled"
+    EXPIRED = "expired"
+    CLOSED = "closed"
+
+
+class SlotOffer(Base):
+    __tablename__ = "slot_offers"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    service_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("services.id"))
+    staff_name: Mapped[str | None] = mapped_column(String(80))
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    book_by: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    benefit: Mapped[SlotBenefit] = mapped_column(_enum(SlotBenefit, "slot_benefit"), nullable=False)
+    # Stamps: number of extra stamps. Discount: percentage. Upgrade: unused.
+    benefit_value: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    benefit_text: Mapped[str | None] = mapped_column(String(120))
+    capacity: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=1)
+    claims_count: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    group_size: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=3)
+    wait_minutes: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=10)
+    status: Mapped[SlotStatus] = mapped_column(
+        _enum(SlotStatus, "slot_status"), nullable=False, default=SlotStatus.OPEN
+    )
+    sending_started: Mapped[bool] = mapped_column(default=False, nullable=False)
+    next_send_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint("capacity between 1 and 20", name="capacity_range"),
+        CheckConstraint("claims_count between 0 and capacity", name="claims_within_capacity"),
+        CheckConstraint("group_size between 1 and 50", name="group_size_range"),
+        CheckConstraint("wait_minutes between 1 and 240", name="wait_range"),
+        CheckConstraint("book_by <= starts_at", name="book_before_start"),
+        CheckConstraint(
+            "benefit <> 'discount' or benefit_value between 1 and 50", name="discount_range"
+        ),
+        CheckConstraint(
+            "benefit <> 'stamps' or benefit_value between 1 and 10", name="bonus_stamps_range"
+        ),
+        Index("ix_slot_offer_send", "status", "next_send_at"),
+    )
+
+
+class SlotRecipient(Base):
+    __tablename__ = "slot_recipients"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    offer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("slot_offers.id"), nullable=False)
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    position: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    reason: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(12), nullable=False, default="queued")
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("offer_id", "customer_id", name="uq_slot_recipient"),
+        Index("ix_slot_recipient_queue", "offer_id", "status", "position"),
+    )
+
+
+class SlotClaim(Base):
+    __tablename__ = "slot_claims"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    offer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("slot_offers.id"), nullable=False)
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    claimed_at: Mapped[datetime] = _created()
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    applied_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+
+    __table_args__ = (UniqueConstraint("offer_id", "customer_id", name="uq_slot_claim"),)
 
 
 class WebhookConfig(Base):

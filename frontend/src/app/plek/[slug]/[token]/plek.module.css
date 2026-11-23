@@ -1,0 +1,62 @@
+.ticket {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-pass);
+  background: var(--pass-bg);
+  color: var(--pass-fg);
+  box-shadow: var(--shadow-pass), var(--pass-edge);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ticket::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pass-sheen);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.business {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--lh-lg);
+}
+
+.label {
+  font-size: var(--text-xs);
+  line-height: var(--lh-xs);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-top: var(--space-4);
+}
+
+.time {
+  font-family: var(--font-display);
+  font-size: var(--text-huge);
+  line-height: var(--lh-display);
+  letter-spacing: var(--track-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  opacity: 0.85;
+}
+
+.benefit {
+  margin-top: var(--space-4);
+  font-size: var(--text-lg);
+  line-height: var(--lh-lg);
+  font-weight: var(--weight-strong);
+}
+
+.deadline {
+  padding-top: var(--space-3);
+  border-top: var(--hairline) dashed color-mix(in srgb, currentColor 30%, transparent);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}

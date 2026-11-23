@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { Pass } from "@/components/Pass";
@@ -36,6 +37,7 @@ export default function SettingsPage() {
   const t = useTranslations("settings");
   const common = useTranslations("common");
   const errorText = useErrorText();
+  const router = useRouter();
   const [data, setData] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Partial<Settings>>({});
   const [palette, setPalette] = useState<Palette | null>(null);
@@ -188,6 +190,18 @@ export default function SettingsPage() {
               </div>
             </div>
           </Panel>
+          <div className={w.noPrint}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={async () => {
+                await api("/auth/logout", { method: "POST" }).catch(() => undefined);
+                router.replace("/inloggen");
+              }}
+            >
+              {common("signOut")}
+            </Button>
+          </div>
         </div>
         <aside className={w.sticky} aria-label={t("preview")}>
           <span className={w.muted}>{t("preview")}</span>

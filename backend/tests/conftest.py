@@ -172,6 +172,7 @@ def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
         "app.services.ledger",
         "app.services.owner",
         "app.services.inbox",
+        "app.services.slots",
     ):
         monkeypatch.setattr(f"{mod}.utcnow", c)
     return c
