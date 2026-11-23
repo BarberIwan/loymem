@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { Pass } from "@/components/Pass";
@@ -36,6 +37,7 @@ export default function SettingsPage() {
   const t = useTranslations("settings");
   const common = useTranslations("common");
   const errorText = useErrorText();
+  const router = useRouter();
   const [data, setData] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Partial<Settings>>({});
   const [palette, setPalette] = useState<Palette | null>(null);
@@ -194,7 +196,7 @@ export default function SettingsPage() {
               variant="secondary"
               onClick={async () => {
                 await api("/auth/logout", { method: "POST" }).catch(() => undefined);
-                window.location.assign("/inloggen");
+                router.replace("/inloggen");
               }}
             >
               {common("signOut")}
