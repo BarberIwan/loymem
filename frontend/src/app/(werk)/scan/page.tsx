@@ -18,6 +18,7 @@ type Found = {
   rewards: { id: string; description: string }[];
   services: { id: string; name: string }[];
   claimed_offer: Benefit | null;
+  membership: { plan: string; credits: number } | null;
 };
 
 type StampResult = { stamped: boolean; stamps: number; rewards_earned?: number; applied_offer: Benefit | null };
@@ -94,7 +95,21 @@ function StampFlow() {
     setBusy(false);
   }
 
+  const [creditNote, setCreditNote] = useState<string | null>(null);
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+  async function useCredit() {
+    if (!found) return;
+    try {
+      const r = await api<{ credits_left: number }>("/credits/use", { method: "POST", json: { customer_id: found.customer_id, request_id: requestId } });
+      setCreditNote(t("creditUsed", { count: r.credits_left }));
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }
+
   function reset() {
+    setRequestId(crypto.randomUUID());
+    setCreditNote(null);
     setFound(null);
     setResult(null);
     setService(null);
@@ -119,6 +134,7 @@ function StampFlow() {
         <span className={s.label}>{t("customer")}</span>
         <span className={s.name}>{name}</span>
         <span className={s.meta}>{`${found.stamps} / ${total}`}</span>
+        {found.membership && <span className={s.meta}>{t("credits", { plan: found.membership.plan, count: found.membership.credits })}</span>}
         {found.claimed_offer && !result && <span className={s.offer}>{t("offerClaimed", { benefit: benefitText(found.claimed_offer) })}</span>}
       </div>
       {result ? (
@@ -160,6 +176,12 @@ function StampFlow() {
           <button type="button" className={s.primary} onClick={stamp} disabled={busy}>
             {t("stamp")}
           </button>
+          {found.membership && found.membership.credits > 0 && !creditNote && (
+            <button type="button" className={s.ghost} onClick={useCredit} disabled={busy}>
+              {t("useCredit")}
+            </button>
+          )}
+          {creditNote && <p className={s.offer}>{creditNote}</p>}
           <button type="button" className={s.ghost} onClick={reset}>
             {t("next")}
           </button>

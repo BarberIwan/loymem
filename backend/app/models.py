@@ -504,6 +504,148 @@ class WebhookDelivery(Base):
     __table_args__ = (Index("ix_webhook_delivery_time", "business_id", "created_at"),)
 
 
+class PlanKind(enum.StrEnum):
+    MEMBERSHIP = "membership"
+    BUNDLE = "bundle"
+
+
+class Plan(Base):
+    """A membership (monthly, renews) or a visit bundle (prepaid, expires).
+
+    Every condition the customer must see before buying lives here, and any change
+    to them bumps ``terms_version``; a purchase records the version it accepted.
+    """
+
+    __tablename__ = "plans"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    kind: Mapped[PlanKind] = mapped_column(_enum(PlanKind, "plan_kind"), nullable=False)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    price_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    credits: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    validity_days: Mapped[int | None] = mapped_column(SmallInteger)
+    cancel_notice_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    cooling_off_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=14)
+    unused_policy: Mapped[str] = mapped_column(Text, nullable=False)
+    no_show_policy: Mapped[str] = mapped_column(Text, nullable=False)
+    pause_policy: Mapped[str] = mapped_column(Text, nullable=False)
+    terms_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint("price_cents between 100 and 100000", name="price_range"),
+        CheckConstraint("credits between 1 and 100", name="credits_range"),
+        # Renewing memberships may be cancelled monthly: notice of at most a month.
+        CheckConstraint("cancel_notice_days between 0 and 31", name="notice_at_most_month"),
+        CheckConstraint(
+            "kind <> 'bundle' or validity_days between 30 and 1095", name="bundle_validity"
+        ),
+    )
+
+
+class SubscriptionStatus(enum.StrEnum):
+    PENDING = "pending"
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
+    ENDED = "ended"
+    FAILED = "failed"
+
+
+class Subscription(Base):
+    """A customer's membership or bundle. Status only changes through payment events
+    or the customer's own cancellation; staff cannot change it."""
+
+    __tablename__ = "subscriptions"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id"), nullable=False, index=True
+    )
+    plan_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("plans.id"), nullable=False)
+    status: Mapped[SubscriptionStatus] = mapped_column(
+        _enum(SubscriptionStatus, "subscription_status"), nullable=False
+    )
+    terms_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    renews: Mapped[bool] = mapped_column(default=False, nullable=False)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    provider_customer_id: Mapped[str | None] = mapped_column(String(60))
+    provider_mandate_id: Mapped[str | None] = mapped_column(String(60))
+    created_at: Mapped[datetime] = _created()
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("subscriptions.id"), nullable=False
+    )
+    provider_payment_id: Mapped[str] = mapped_column(String(60), nullable=False, unique=True)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    sequence: Mapped[str] = mapped_column(String(12), nullable=False)
+    # Set once when the payment's credits were granted; makes processing idempotent.
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+
+
+class CreditKind(enum.StrEnum):
+    GRANT = "grant"
+    RESERVE = "reserve"
+    CONSUME = "consume"
+    RELEASE = "release"
+    EXPIRE = "expire"
+
+
+class CreditEvent(Base):
+    """Credit ledger, append-only like ``ledger_events``.
+
+    ``delta`` changes the available balance: grant +n, reserve -1, release +1,
+    consume 0 (the credit already left at reservation), expire -n. ``settles_id``
+    points a consume or release at its reservation, and is unique: a reservation
+    is settled exactly once.
+    """
+
+    __tablename__ = "credit_events"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("subscriptions.id"), nullable=False, index=True
+    )
+    kind: Mapped[CreditKind] = mapped_column(_enum(CreditKind, "credit_kind"), nullable=False)
+    delta: Mapped[int] = mapped_column(Integer, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(160), nullable=False, unique=True)
+    settles_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("credit_events.id"), unique=True
+    )
+    staff_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+    created_at: Mapped[datetime] = _created()
+
+
+class ProviderConnection(Base):
+    """A business's own payment account (Mollie Connect). Tokens stored encrypted."""
+
+    __tablename__ = "provider_connections"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False, unique=True
+    )
+    provider: Mapped[str] = mapped_column(String(20), nullable=False)
+    access_token_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    refresh_token_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    profile_id: Mapped[str | None] = mapped_column(String(60))
+    created_at: Mapped[datetime] = _created()
+
+
 class AuditEntry(Base):
     __tablename__ = "audit_log"
 
@@ -520,4 +662,4 @@ class AuditEntry(Base):
 
 
 TENANT_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name != "businesses"]
-APPEND_ONLY_TABLES = ["ledger_events", "audit_log"]
+APPEND_ONLY_TABLES = ["ledger_events", "audit_log", "credit_events"]

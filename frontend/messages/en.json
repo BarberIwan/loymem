@@ -43,7 +43,15 @@
     "already_claimed": "You already have this slot.",
     "slot_not_open": "This slot is no longer open.",
     "recipient_not_queued": "This customer has already been contacted.",
-    "offer_not_found": "This offer does not exist."
+    "offer_not_found": "This offer does not exist.",
+    "memberships_not_enabled": "This is not on sale yet.",
+    "plan_not_found": "This plan no longer exists.",
+    "terms_changed": "The terms just changed. Please read them again.",
+    "payments_not_connected": "The business has not connected a payment account yet.",
+    "payment_provider_error": "Payment does not work right now. Try again shortly.",
+    "no_active_membership": "No active membership.",
+    "no_credits_left": "No credits left.",
+    "subscription_not_found": "This membership does not exist."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -98,7 +106,8 @@
     "overview": "Overview",
     "settings": "Settings",
     "today": "Today",
-    "slots": "Free slots"
+    "slots": "Free slots",
+    "plans": "Memberships"
   },
   "scan": {
     "title": "Scan",
@@ -124,7 +133,10 @@
     "tabStamp": "Stamp",
     "tabRedeem": "Redeem",
     "offerClaimed": "Claimed a free slot: {benefit}",
-    "offerApplied": "Benefit applied: {benefit}"
+    "offerApplied": "Benefit applied: {benefit}",
+    "credits": "{plan}: {count} left",
+    "useCredit": "Use a visit credit",
+    "creditUsed": "Credit used. {count} left."
   },
   "overview": {
     "title": "Overview",
@@ -333,5 +345,58 @@
     "emptyTitle": "No free slots yet",
     "emptyBody": "When an appointment drops out, release it here. Customers on the waitlist get a message, the best fit first.",
     "emptyExample": "Example: today 14:30, haircut, bookable until 13:45, two extra stamps."
+  },
+  "membership": {
+    "title": "Memberships and bundles",
+    "perMonth": "{price} a month",
+    "once": "{price} once",
+    "creditsMonth": "{count, plural, one {# visit} other {# visits}} a month",
+    "creditsTotal": "{count, plural, one {# visit} other {# visits}}, valid {days} days",
+    "termsTitle": "Terms",
+    "renews": "Renews every month. You can cancel any time here on your card; it ends at the end of the paid month.",
+    "noRenew": "Does not renew.",
+    "notice": "Notice period: {days} days.",
+    "noNotice": "No notice period.",
+    "coolingOff": "Cooling-off: {days} days after purchase.",
+    "unused": "Unused",
+    "noShow": "No-show",
+    "pause": "Pausing",
+    "version": "Terms version {version}",
+    "accept": "I have read the terms",
+    "buy": "Pay",
+    "yours": "Your {plan}",
+    "creditsLeft": "{count, plural, one {# visit} other {# visits}} left",
+    "until": "Runs until {date}",
+    "cancelled": "Cancelled. You can use it until {date}.",
+    "pending": "Waiting for payment.",
+    "cancel": "Cancel",
+    "cancelConfirm": "Are you sure? The membership stops at the end of this period.",
+    "cancelYes": "Yes, cancel",
+    "keep": "No, keep it"
+  },
+  "plans": {
+    "title": "Memberships",
+    "lead": "Regular customers pay ahead and come more often. The money goes straight to your own payment account.",
+    "off": "Selling stays off until the terms have been checked by a lawyer. You can prepare plans already.",
+    "connect": "Connect your payment account",
+    "connected": "Your payment account is connected.",
+    "new": "New plan",
+    "kind": "Type",
+    "kindMembership": "Membership (monthly)",
+    "kindBundle": "Bundle (one-off)",
+    "name": "Name",
+    "price": "Price in euros",
+    "credits": "Visits",
+    "validity": "Valid (days)",
+    "notice": "Notice period (days, at most 31)",
+    "coolingOff": "Cooling-off (days, at least 14)",
+    "unused": "What happens to unused visits",
+    "noShow": "What if a customer does not show",
+    "pause": "Pausing",
+    "save": "Save",
+    "versionNote": "Change the price or terms and the plan gets a new version. Whoever bought already keeps the old one.",
+    "emptyTitle": "No plans yet",
+    "emptyBody": "Start with one membership that suits your regulars.",
+    "emptyExample": "Example: Haircut membership, 35 euros a month, 2 haircuts."
   }
 }

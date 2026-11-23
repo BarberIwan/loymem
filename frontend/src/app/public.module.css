@@ -190,3 +190,29 @@
   text-underline-offset: var(--space-1);
   cursor: pointer;
 }
+
+.terms {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.terms dt {
+  font-weight: var(--weight-strong);
+  margin-top: var(--space-2);
+}
+
+.terms dt:first-child {
+  margin-top: 0;
+}
+
+.terms dd {
+  margin: 0;
+  color: var(--ink-2);
+}
