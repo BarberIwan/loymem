@@ -428,5 +428,10 @@
     "emptyTitle": "Nog geen campagnes",
     "emptyBody": "Begin met klanten die toe zijn aan een bezoek. Een korte, persoonlijke zin met je boekingslink werkt het best.",
     "emptyExample": "Voorbeeld: Hoi, het is alweer even geleden. Je bent welkom, boeken kan via barberiwan.nl."
+  },
+  "unsubscribe": {
+    "working": "Even geduld.",
+    "done": "Je bent afgemeld. Je krijgt deze berichten niet meer. Je stempels en beloningen blijven gewoon staan.",
+    "failed": "Deze afmeldlink werkt niet. Je kunt berichten ook uitzetten op je kaart."
   }
 }

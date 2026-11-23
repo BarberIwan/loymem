@@ -325,8 +325,16 @@ class OutboxMessage(Base):
     recipient: Mapped[str] = mapped_column(String(254), nullable=False)
     template: Mapped[str] = mapped_column(String(60), nullable=False)
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    # Set for messages that need an unsubscribe link (marketing, slot alerts).
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("customers.id"))
+    attempts: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
+    last_error: Mapped[str | None] = mapped_column(String(300))
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (Index("ix_outbox_pending", "business_id", "sent_at", "attempts"),)
 
 
 class InboxDecision(enum.StrEnum):

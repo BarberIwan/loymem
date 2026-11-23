@@ -369,6 +369,7 @@ def send_due(db: Session, business: Business, now: datetime | None = None) -> in
             r.sent_at = now
             db.add(
                 OutboxMessage(
+                    customer_id=customer.id,
                     business_id=business.id,
                     channel="email",
                     recipient=customer.email,

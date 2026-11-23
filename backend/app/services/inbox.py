@@ -187,6 +187,7 @@ def decide(
         assert customer is not None and customer.email
         db.add(
             OutboxMessage(
+                customer_id=customer_id,
                 business_id=ctx.business.id,
                 channel="email",
                 recipient=customer.email,

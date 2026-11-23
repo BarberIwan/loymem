@@ -16,7 +16,13 @@ class Settings(BaseSettings):
     reward_code_seconds: int = 90
     reissue_link_minutes: int = 30
     unusual_stamps_per_hour: int = 20
+    # log_only: nothing leaves the server. smtp: send through the SMTP settings below.
     email_delivery: str = "log_only"
+    mail_from_address: str = ""
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
     # Selling memberships and bundles stays off until the legal check in §8 is done.
     memberships_enabled: bool = False
     mollie_client_id: str = ""

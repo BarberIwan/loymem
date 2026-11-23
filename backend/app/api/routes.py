@@ -807,3 +807,11 @@ def send_campaign(campaign_id: uuid.UUID, ctx: Manager, db: Db) -> dict[str, int
 @api.get("/campaigns/{campaign_id}/report")
 def campaign_report(campaign_id: uuid.UUID, ctx: Manager, db: Db) -> dict[str, object]:
     return campaigns.report(db, ctx, campaign_id)
+
+
+@api.post("/public/{slug}/afmelden/{token}")
+def unsubscribe(slug: str, token: str, db: Db) -> dict[str, str]:
+    from app.services.mailer import unsubscribe as do_unsubscribe
+
+    b = business_by_slug(db, slug)
+    return {"purpose": do_unsubscribe(db, b, token).value}
