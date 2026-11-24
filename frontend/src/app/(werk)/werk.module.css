@@ -286,3 +286,63 @@
   display: grid;
   gap: var(--space-1);
 }
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.runRow {
+  padding-block: var(--space-3);
+  border-bottom: var(--hairline) solid var(--line);
+}
+
+.runRow:last-child {
+  border-bottom: 0;
+}
+
+.runHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.refundBox {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chipChoice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--hit);
+  padding: 0 var(--space-4);
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-round);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.chipChoice:has(input:checked) {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 var(--hairline) var(--accent);
+}
+
+.chipChoice input {
+  accent-color: var(--accent);
+  margin: 0;
+}

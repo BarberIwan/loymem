@@ -56,6 +56,7 @@ TERM_FIELDS = (
     "unused_policy",
     "no_show_policy",
     "pause_policy",
+    "refund_policy",
 )
 
 _provider: PaymentProvider | None = None
@@ -107,6 +108,7 @@ def plan_terms(plan: Plan) -> dict[str, object]:
         "unused_policy": plan.unused_policy,
         "no_show_policy": plan.no_show_policy,
         "pause_policy": plan.pause_policy,
+        "refund_policy": plan.refund_policy,
         "terms_version": plan.terms_version,
         "renews": plan.kind == PlanKind.MEMBERSHIP,
         "active": plan.active,

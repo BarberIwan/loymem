@@ -29,3 +29,6 @@
 11. Vaste zinnen voor de voorwaarden (`voorwaarden-zinnen.md`): zijn ze
     redelijk en duidelijk genoeg, en mag een zaak "telt als gebruikt bezoek"
     hanteren bij laat afmelden of niet komen?
+12. Geld terug: klopt de vaste zin (14 dagen zonder reden, min wat gebruikt is
+    naar verhouding; bij stoppen van de zaak het ongebruikte deel)? De eigenaar
+    kan meer teruggeven dan voorgesteld, nooit meer dan voor die periode betaald.

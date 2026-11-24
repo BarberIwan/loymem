@@ -46,6 +46,14 @@ NO_SHOW = {
 # Fixed until the platform can pause a membership itself.
 PAUSE = "Pauzeren kan niet. Opzeggen kan altijd, per het eind van de betaalde maand."
 
+# Fixed, for every plan: when money comes back.
+REFUND = (
+    "Binnen 14 dagen na aankoop kun je zonder reden afzien van je aankoop; je krijgt je "
+    "geld terug, min wat je al hebt gebruikt, naar verhouding. Stopt de zaak, dan krijg "
+    "je terug wat je nog niet hebt gebruikt. Terugbetalen gaat via dezelfde manier "
+    "waarop je betaalde."
+)
+
 UNUSED_RULES = set(UNUSED_MEMBERSHIP)
 NO_SHOW_RULES = set(NO_SHOW)
 
@@ -53,7 +61,12 @@ NO_SHOW_RULES = set(NO_SHOW)
 def texts(kind: PlanKind, unused_rule: str | None, no_show_rule: str | None) -> dict[str, str]:
     """The sentences a plan shows, for the rules chosen. Raises on an unknown rule."""
     if kind == PlanKind.CREDIT:
-        return {"unused_policy": UNUSED_CREDIT, "no_show_policy": "", "pause_policy": ""}
+        return {
+            "unused_policy": UNUSED_CREDIT,
+            "no_show_policy": "",
+            "pause_policy": "",
+            "refund_policy": REFUND,
+        }
     if no_show_rule not in NO_SHOW:
         raise ValueError("no_show_rule")
     if kind == PlanKind.MEMBERSHIP:
@@ -62,8 +75,20 @@ def texts(kind: PlanKind, unused_rule: str | None, no_show_rule: str | None) -> 
         unused = UNUSED_MEMBERSHIP[unused_rule]
     else:
         unused = UNUSED_BUNDLE
-    return {"unused_policy": unused, "no_show_policy": NO_SHOW[no_show_rule], "pause_policy": PAUSE}
+    return {
+        "unused_policy": unused,
+        "no_show_policy": NO_SHOW[no_show_rule],
+        "pause_policy": PAUSE,
+        "refund_policy": REFUND,
+    }
 
 
 def all_sentences() -> list[str]:
-    return [*UNUSED_MEMBERSHIP.values(), UNUSED_BUNDLE, UNUSED_CREDIT, *NO_SHOW.values(), PAUSE]
+    return [
+        *UNUSED_MEMBERSHIP.values(),
+        UNUSED_BUNDLE,
+        UNUSED_CREDIT,
+        *NO_SHOW.values(),
+        PAUSE,
+        REFUND,
+    ]

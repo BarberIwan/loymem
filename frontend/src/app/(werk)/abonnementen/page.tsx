@@ -19,6 +19,7 @@ type PolicyOptions = {
   unused_bundle: string;
   unused_credit: string;
   pause: string;
+  refund: string;
 };
 type Data = { plans: (PlanTerms & { active: boolean })[]; connected: boolean; selling_enabled: boolean; policy_options: PolicyOptions };
 
@@ -142,6 +143,7 @@ export default function PlansPage() {
             ))}
           </ul>
         ))}
+      {data && data.plans.length > 0 && <Running />}
       <Panel title={t("new")}>
         <form className={w.stack} onSubmit={create}>
           <div className={w.pair}>
@@ -223,6 +225,7 @@ function Terms({ kind, options, unused, noShow, onChange }: {
           <Fixed label={t("pause")} text={options.pause} />
         </>
       )}
+      <Fixed label={t("refund")} text={options.refund} />
     </div>
   );
 }
@@ -259,6 +262,132 @@ function Fixed({ label, text }: { label: string; text: string }) {
         {label} <span className={uiStyles.labelMuted}>({t("fixed")})</span>
       </span>
       <span className={w.choiceText}>{text}</span>
+    </div>
+  );
+}
+
+type Running = {
+  id: string;
+  customer: string;
+  plan: string;
+  kind: "membership" | "bundle" | "credit";
+  status: string;
+  renews: boolean;
+  period_end: string | null;
+  refund: { paid_cents: number; unused: number; bought: number; suggested_cents: number; within_cooling_off: boolean } | null;
+};
+
+const REASONS = ["cooling_off", "business_stops", "goodwill", "other"] as const;
+
+/** Running purchases, with a refund the owner can give: suggested in proportion, never more than was paid. */
+function Running() {
+  const t = useTranslations("plans");
+  const errorText = useErrorText();
+  const [rows, setRows] = useState<Running[] | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => {
+    api<Running[]>("/subscriptions").then(setRows, (e) => setError(errorText(e)));
+  }, [errorText]);
+  useEffect(load, [load]);
+  if (!rows) return error ? <Notice tone="danger">{error}</Notice> : null;
+  return (
+    <Panel title={t("running")}>
+      {rows.length === 0 ? (
+        <p className={w.muted}>{t("runningEmpty")}</p>
+      ) : (
+        <ul className={w.rows}>
+          {rows.map((r) => (
+            <li key={r.id} className={w.runRow}>
+              <RunningRow row={r} open={open === r.id} onOpen={() => setOpen(open === r.id ? null : r.id)} onDone={() => { setOpen(null); load(); }} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
+function RunningRow({ row, open, onOpen, onDone }: { row: Running; open: boolean; onOpen: () => void; onDone: () => void }) {
+  const t = useTranslations("plans");
+  const locale = useLocale();
+  const errorText = useErrorText();
+  const q = row.refund;
+  const [amount, setAmount] = useState(q ? (q.suggested_cents / 100).toFixed(2).replace(".", ",") : "");
+  const [reason, setReason] = useState<(typeof REASONS)[number]>(q?.within_cooling_off ? "cooling_off" : "business_stops");
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const amountCents = cents(amount);
+  const valid = q !== null && Number.isFinite(amountCents) && amountCents >= 1 && amountCents <= q.paid_cents;
+  const unusedText = q ? (row.kind === "credit" ? t("unusedBalance", { left: euros(q.unused, locale), of: euros(q.bought, locale) }) : t("unusedVisits", { left: q.unused, of: q.bought })) : "";
+
+  async function refund() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/subscriptions/${row.id}/refund`, { method: "POST", json: { amount_cents: amountCents, reason } });
+      onDone();
+    } catch (e) {
+      setError(errorText(e));
+      setConfirm(false);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className={w.stack}>
+      <div className={w.runHead}>
+        <span>
+          <strong>{row.customer}</strong> <span className={w.muted}>{row.plan}</span>
+        </span>
+        {q && (
+          <button type="button" className={uiStyles.linkButton} onClick={onOpen} aria-expanded={open}>
+            {t("refundOpen")}
+          </button>
+        )}
+      </div>
+      {open && q && (
+        <div className={w.refundBox}>
+          <p className={w.muted}>
+            {t("refundBasis", { paid: euros(q.paid_cents, locale), unused: unusedText })}
+            {q.within_cooling_off ? ` ${t("withinCoolingOff")}` : ""}
+          </p>
+          <p>{t("refundSuggested", { amount: euros(q.suggested_cents, locale) })}</p>
+          <Field label={t("refundAmount")} inputMode="decimal" value={amount} onChange={(e) => { setAmount(e.target.value); setConfirm(false); }} help={t("refundMax", { amount: euros(q.paid_cents, locale) })} />
+          <fieldset className={w.choices}>
+            <legend className={uiStyles.label}>{t("refundReason")}</legend>
+            <div className={w.chipRow}>
+              {REASONS.map((r) => (
+                <label key={r} className={w.chipChoice}>
+                  <input type="radio" name={`reason-${row.id}`} checked={reason === r} onChange={() => setReason(r)} />
+                  <span>{t(`reason.${r}`)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {error && <Notice tone="danger">{error}</Notice>}
+          {confirm ? (
+            <>
+              <p>{t("refundConfirm", { amount: euros(amountCents, locale), name: row.customer })}</p>
+              <div className={w.actions}>
+                <Button type="button" variant="danger" onClick={refund} disabled={busy}>
+                  {t("refundYes", { amount: euros(amountCents, locale) })}
+                </Button>
+                <button type="button" className={uiStyles.linkButton} onClick={() => setConfirm(false)}>
+                  {t("refundNo")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className={w.actions}>
+              <Button type="button" variant="secondary" onClick={() => setConfirm(true)} disabled={!valid}>
+                {valid ? t("refundYes", { amount: euros(amountCents, locale) }) : t("refundInvalid")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

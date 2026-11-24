@@ -56,4 +56,4 @@ export type CardData = {
 };
 
 export type Balance = { cents: number; parts: { cents: number; expires: string }[] };
-export type BalanceLine = { kind: "topup" | "spend" | "expire"; cents: number; at: string; request_id: string | null; undone: boolean };
+export type BalanceLine = { kind: "topup" | "spend" | "expire" | "refund"; cents: number; at: string; request_id: string | null; undone: boolean };

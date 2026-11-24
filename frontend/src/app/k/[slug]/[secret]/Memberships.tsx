@@ -24,6 +24,7 @@ export type PlanTerms = {
   unused_policy: string;
   no_show_policy: string;
   pause_policy: string;
+  refund_policy: string;
   terms_version: number;
   renews: boolean;
 };
@@ -78,7 +79,8 @@ function BalanceBlock({ balance, history, pending }: { balance: Balance; history
   const locale = useLocale();
   const format = useFormatter();
   const day = (iso: string) => format.dateTime(new Date(iso), { day: "numeric", month: "long", year: "numeric" });
-  const label = (l: BalanceLine) => (l.kind === "topup" ? t("lineTopup") : l.kind === "expire" ? t("lineExpire") : l.undone ? t("lineUndone") : t("lineSpend"));
+  const label = (l: BalanceLine) =>
+    l.kind === "topup" ? t("lineTopup") : l.kind === "expire" ? t("lineExpire") : l.kind === "refund" ? t("lineRefund") : l.undone ? t("lineUndone") : t("lineSpend");
   return (
     <div className={styles.form}>
       {balance.cents > 0 && (
@@ -228,6 +230,12 @@ function Offer({ path, plan }: { path: string; plan: PlanTerms }) {
                 <dd>{plan.no_show_policy}</dd>
                 <dt>{t("pause")}</dt>
                 <dd>{plan.pause_policy}</dd>
+              </>
+            )}
+            {plan.refund_policy && (
+              <>
+                <dt>{t("refund")}</dt>
+                <dd>{plan.refund_policy}</dd>
               </>
             )}
           </dl>

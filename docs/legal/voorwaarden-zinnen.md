@@ -28,3 +28,7 @@ houdt deze lijst gelijk aan `backend/app/services/policies.py`.*
 ## Pauzeren (vast, tot het platform zelf kan pauzeren)
 
 - Pauzeren kan niet. Opzeggen kan altijd, per het eind van de betaalde maand.
+
+## Geld terug (vast, voor elk plan)
+
+- Binnen 14 dagen na aankoop kun je zonder reden afzien van je aankoop; je krijgt je geld terug, min wat je al hebt gebruikt, naar verhouding. Stopt de zaak, dan krijg je terug wat je nog niet hebt gebruikt. Terugbetalen gaat via dezelfde manier waarop je betaalde.

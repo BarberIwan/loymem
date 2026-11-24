@@ -64,7 +64,10 @@
     "balance_too_low": "Er staat niet genoeg tegoed op.",
     "amount_out_of_range": "Dit bedrag kan niet.",
     "undo_not_allowed": "Terugdraaien kan nu alleen een manager of de eigenaar.",
-    "spend_not_found": "Deze boeking bestaat niet."
+    "spend_not_found": "Deze boeking bestaat niet.",
+    "nothing_to_refund": "Hier valt niets meer terug te betalen.",
+    "refund_amount_out_of_range": "Dat bedrag kan niet: hoogstens wat voor deze periode is betaald.",
+    "unknown_reason": "Kies een reden."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -429,7 +432,9 @@
     "creditUse": "Besteden",
     "creditUseBody": "Je kunt {value} besteden bij de zaak. Bij elke behandeling wordt het bedrag van je tegoed afgehaald en zie je hier wat er over is.",
     "chargeCredit": "Je betaalt nu eenmalig {price} op de betaalpagina. Daarna staat {value} op je kaart.",
-    "titleBalance": "Tegoed"
+    "titleBalance": "Tegoed",
+    "refund": "Geld terug",
+    "lineRefund": "Terugbetaald"
   },
   "plans": {
     "title": "Abonnementen",
@@ -478,7 +483,29 @@
       "no_show_counts": "Alleen niet komen zonder afmelden",
       "late_24h": "Afmelden tot 24 uur vooraf",
       "late_24h_first_free": "Tot 24 uur vooraf, eerste keer per jaar vrij"
-    }
+    },
+    "refund": "Geld terug",
+    "running": "Lopende aankopen",
+    "runningEmpty": "Nog niemand heeft een abonnement, bundel of tegoed gekocht.",
+    "refundOpen": "Terugbetalen",
+    "unusedVisits": "nog {left} van {of} bezoeken ongebruikt",
+    "unusedBalance": "nog {left} van {of} tegoed ongebruikt",
+    "refundBasis": "Betaald {paid}, {unused}.",
+    "withinCoolingOff": "Binnen de bedenktijd.",
+    "refundSuggested": "Voorstel naar verhouding: {amount}",
+    "refundAmount": "Bedrag terug (euro)",
+    "refundMax": "Hoogstens {amount}, wat voor deze periode is betaald.",
+    "refundReason": "Reden",
+    "reason": {
+      "cooling_off": "Bedenktijd",
+      "business_stops": "Zaak stopt",
+      "goodwill": "Coulance",
+      "other": "Anders"
+    },
+    "refundConfirm": "{amount} gaat terug naar {name}, via dezelfde betaalmanier. De aankoop stopt en wat ongebruikt is, gaat van de kaart. Dit kun je niet terugdraaien.",
+    "refundYes": "{amount} terugbetalen",
+    "refundNo": "Niet terugbetalen",
+    "refundInvalid": "Vul een geldig bedrag in"
   },
   "campaigns": {
     "title": "Campagnes",

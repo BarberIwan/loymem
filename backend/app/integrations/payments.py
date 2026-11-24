@@ -60,6 +60,12 @@ class PaymentProvider(Protocol):
 
     def get_payment(self, access_token: str, payment_id: str) -> PaymentInfo: ...
 
+    def refund(
+        self, access_token: str, payment_id: str, amount_cents: int, description: str
+    ) -> str:
+        """Give money back on a paid payment, to the same method. Returns the refund id."""
+        ...
+
 
 class FakeProvider:
     """In-memory provider for tests and local work. Never used in production."""
@@ -68,6 +74,7 @@ class FakeProvider:
 
     def __init__(self) -> None:
         self.payments: dict[str, PaymentInfo] = {}
+        self.refunds: list[tuple[str, int]] = []
         self.counter = 0
 
     def authorize_url(self, state: str, redirect_uri: str) -> str:
@@ -97,3 +104,12 @@ class FakeProvider:
 
     def get_payment(self, access_token: str, payment_id: str) -> PaymentInfo:
         return self.payments[payment_id]
+
+    def refund(
+        self, access_token: str, payment_id: str, amount_cents: int, description: str
+    ) -> str:
+        paid = self.payments[payment_id]
+        if paid.status != "paid" or amount_cents > paid.amount_cents:
+            raise ValueError("refund_not_possible")
+        self.refunds.append((payment_id, amount_cents))
+        return f"re_fake{len(self.refunds)}"

@@ -116,3 +116,18 @@ class MollieProvider:
             p.get("mandateId"),
             p.get("metadata") or {},
         )
+
+    def refund(
+        self, access_token: str, payment_id: str, amount_cents: int, description: str
+    ) -> str:
+        with self._client(access_token) as c:
+            r = c.post(
+                f"/payments/{payment_id}/refunds",
+                json={
+                    "amount": {"currency": "EUR", "value": f"{amount_cents / 100:.2f}"},
+                    "description": description[:140],
+                    "testmode": self.testmode,
+                },
+            )
+            r.raise_for_status()
+            return str(r.json()["id"])

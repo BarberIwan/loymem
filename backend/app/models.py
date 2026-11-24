@@ -544,6 +544,7 @@ class Plan(Base):
     unused_policy: Mapped[str] = mapped_column(Text, nullable=False)
     no_show_policy: Mapped[str] = mapped_column(Text, nullable=False)
     pause_policy: Mapped[str] = mapped_column(Text, nullable=False)
+    refund_policy: Mapped[str] = mapped_column(Text, nullable=False, default="")
     terms_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     active: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = _created()
@@ -633,12 +634,33 @@ class Payment(Base):
     created_at: Mapped[datetime] = _created()
 
 
+class Refund(Base):
+    """Money given back for one purchase, at most once. Append-only."""
+
+    __tablename__ = "refunds"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("subscriptions.id"), nullable=False, unique=True
+    )
+    payment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("payments.id"), nullable=False)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    provider_refund_id: Mapped[str | None] = mapped_column(String(60))
+    reason: Mapped[str] = mapped_column(String(40), nullable=False)
+    staff_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("staff_members.id"), nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (CheckConstraint("amount_cents > 0", name="refund_positive"),)
+
+
 class CreditKind(enum.StrEnum):
     GRANT = "grant"
     RESERVE = "reserve"
     CONSUME = "consume"
     RELEASE = "release"
     EXPIRE = "expire"
+    REFUND = "refund"
 
 
 class CreditEvent(Base):
@@ -672,6 +694,7 @@ class BalanceKind(enum.StrEnum):
     SPEND = "spend"
     REVERSAL = "reversal"
     EXPIRE = "expire"
+    REFUND = "refund"
 
 
 class BalanceEvent(Base):
@@ -700,8 +723,8 @@ class BalanceEvent(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "(kind in ('topup', 'reversal') and amount_cents > 0) or "
-            "(kind in ('spend', 'expire') and amount_cents < 0)",
+            "(kind::text in ('topup', 'reversal') and amount_cents > 0) or "
+            "(kind::text in ('spend', 'expire', 'refund') and amount_cents < 0)",
             name="balance_sign",
         ),
         CheckConstraint(
@@ -821,4 +844,10 @@ class AuditEntry(Base):
 
 
 TENANT_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name != "businesses"]
-APPEND_ONLY_TABLES = ["ledger_events", "audit_log", "credit_events", "balance_events"]
+APPEND_ONLY_TABLES = [
+    "ledger_events",
+    "audit_log",
+    "credit_events",
+    "balance_events",
+    "refunds",
+]
