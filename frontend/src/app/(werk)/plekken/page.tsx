@@ -33,6 +33,13 @@ type Service = { id: string; name: string };
 
 const clock = (iso: string) => iso.slice(11, 16);
 
+function local(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+type Freed = { starts_at: string; service: string | null; staff: string | null };
+
 function inHours(h: number) {
   const d = new Date(Date.now() + h * 3600_000);
   d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
@@ -46,9 +53,12 @@ export default function SlotsPage() {
   const [offers, setOffers] = useState<Offer[] | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [freed, setFreed] = useState<Freed[]>([]);
+  const [prefill, setPrefill] = useState<{ starts_at: string; staff_name: string; key: number } | null>(null);
 
   const load = useCallback(() => {
     api<Offer[]>("/slots").then(setOffers, (e) => setError(errorText(e)));
+    api<Freed[]>("/slots/freed").then(setFreed, () => setFreed([]));
   }, [errorText]);
   useEffect(() => {
     load();
@@ -73,7 +83,21 @@ export default function SlotsPage() {
       </div>
       <Notice>{t("slow")}</Notice>
       {error && <Notice tone="danger">{error}</Notice>}
-      <NewOffer services={services} onCreate={(body) => run(() => api("/slots", { method: "POST", json: body }))} />
+      {freed.length > 0 && (
+        <FreedList
+          freed={freed}
+          onPick={(x) => {
+            const start = new Date(x.starts_at);
+            setPrefill({ starts_at: local(start), staff_name: x.staff ?? "", key: Date.now() });
+          }}
+        />
+      )}
+      <NewOffer
+        key={prefill?.key ?? 0}
+        services={services}
+        prefill={prefill}
+        onCreate={(body) => run(() => api("/slots", { method: "POST", json: body }))}
+      />
       {offers &&
         (offers.length === 0 ? (
           <EmptyState title={t("emptyTitle")} body={t("emptyBody")} example={t("emptyExample")} />
@@ -88,13 +112,44 @@ export default function SlotsPage() {
   );
 }
 
-function NewOffer({ services, onCreate }: { services: Service[]; onCreate: (body: object) => void }) {
+function FreedList({ freed, onPick }: { freed: Freed[]; onPick: (x: Freed) => void }) {
+  const t = useTranslations("slots");
+  const format = useFormatter();
+  return (
+    <Panel title={t("freedTitle")}>
+      <p className={w.muted}>{t("freedLead")}</p>
+      <ul className={w.rows}>
+        {freed.map((x) => (
+          <li key={x.starts_at} className={w.runRow}>
+            <div className={w.runHead}>
+              <span>
+                <strong>
+                  {format.dateTime(new Date(x.starts_at), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </strong>{" "}
+                <span className={w.muted}>{[x.staff, x.service].filter(Boolean).join(" · ")}</span>
+              </span>
+              <button type="button" className={uiStyles.linkButton} onClick={() => onPick(x)}>
+                {t("freedOffer")}
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+function NewOffer({ services, prefill, onCreate }: {
+  services: Service[];
+  prefill: { starts_at: string; staff_name: string } | null;
+  onCreate: (body: object) => void;
+}) {
   const t = useTranslations("slots");
   const [f, setF] = useState({
-    starts_at: inHours(3),
-    book_by: inHours(2),
+    starts_at: prefill?.starts_at ?? inHours(3),
+    book_by: prefill ? local(new Date(new Date(prefill.starts_at).getTime() - 3600_000)) : inHours(2),
     service_id: "",
-    staff_name: "",
+    staff_name: prefill?.staff_name ?? "",
     benefit: "stamps",
     benefit_value: 2,
     benefit_text: "",

@@ -67,7 +67,8 @@
     "spend_not_found": "Deze boeking bestaat niet.",
     "nothing_to_refund": "Hier valt niets meer terug te betalen.",
     "refund_amount_out_of_range": "Dat bedrag kan niet: hoogstens wat voor deze periode is betaald.",
-    "unknown_reason": "Kies een reden."
+    "unknown_reason": "Kies een reden.",
+    "mail_inbox_not_set_up": "Maak eerst je ontvangstadres."
   },
   "signup": {
     "lead": "Spaar bij {business}. Na {count} bezoeken krijg je {reward}.",
@@ -386,7 +387,10 @@
     "claims": "{count} van {total} geclaimd",
     "emptyTitle": "Nog geen vrije plekken",
     "emptyBody": "Valt er een afspraak uit, geef hem hier vrij. Klanten op de meldlijst krijgen dan een bericht, de best passende eerst.",
-    "emptyExample": "Voorbeeld: vandaag 14:30, knippen, boeken tot 13:45, twee extra stempels."
+    "emptyExample": "Voorbeeld: vandaag 14:30, knippen, boeken tot 13:45, twee extra stempels.",
+    "freedTitle": "Vrijgekomen in je agenda",
+    "freedLead": "Afspraken die zijn geannuleerd of verplaatst. Kies er een om de plek aan te bieden.",
+    "freedOffer": "Aanbieden"
   },
   "membership": {
     "title": "Abonnementen en bundels",
@@ -579,5 +583,39 @@
     "s4": "Aanmeldcode printen en bij de kassa zetten",
     "s5": "Medewerkers toevoegen",
     "done": "Klaar"
+  },
+  "mailInbox": {
+    "title": "Afspraken uit je boekingssysteem",
+    "lead": "Werkt je zaak met {systems}? Stuur de meldingen over online afspraken door naar je eigen adres hier. Dan weet het platform wie er komt, welke tijden vrijkomen en, als je dat wilt, wie er geweest is.",
+    "notReady": "Nog niet beschikbaar: het ontvangstadres voor mail is nog niet ingericht.",
+    "setUp": "Maak mijn ontvangstadres",
+    "address": "Je ontvangstadres",
+    "addressHelp": "Alleen voor jouw zaak. Deel het niet; met een nieuw adres vervalt het oude.",
+    "copy": "Kopieer adres",
+    "copied": "Gekopieerd",
+    "howTitle": "Zo stel je het in (Gmail)",
+    "step1": "Open Gmail op je computer, klik rechtsboven op het tandwiel en kies Alle instellingen bekijken.",
+    "step2": "Ga naar Doorsturen en POP/IMAP, klik op Een doorstuuradres toevoegen en vul in: {address}",
+    "step3Wait": "Gmail stuurt een bevestigingscode naar dat adres. Ververs deze pagina na een minuut; de code verschijnt dan hier.",
+    "step3Code": "Je bevestigingscode is {code}. Vul hem in bij Gmail en klik op Verifiëren.",
+    "step4": "Maak een filter: zoek op Van: {sender}, klik op Filter maken, vink Doorsturen naar aan en kies je ontvangstadres.",
+    "step5": "Klaar. Nieuwe, verplaatste en geannuleerde online afspraken komen hieronder binnen. Afspraken die je zelf in de agenda zet, stuurt het systeem niet door; die scan je aan de balie.",
+    "countVisits": "Afgelopen afspraken tellen als bezoek",
+    "countVisitsHelp": "Een half uur na afloop krijgt de klant zijn stempel, tenzij de afspraak is geannuleerd. Kwam iemand niet, dan krijgt hij toch een stempel; zet dit alleen aan als dat zelden gebeurt.",
+    "active": "Doorgestuurde mails verwerken",
+    "recent": "Laatst binnengekomen",
+    "none": "Nog niets binnengekomen.",
+    "rotate": "Nieuw adres maken",
+    "k_booked": "Nieuwe afspraak",
+    "k_moved": "Verplaatst",
+    "k_cancelled": "Geannuleerd",
+    "k_gmail_confirm": "Bevestiging Gmail",
+    "k_other": "Andere mail",
+    "o_matched": "klant gevonden",
+    "o_no_customer": "geen klant bij jou",
+    "o_recorded": "tijd vrij",
+    "o_code_saved": "code staat hierboven",
+    "o_ignored": "niet van het boekingssysteem, genegeerd",
+    "o_not_understood": "niet herkend"
   }
 }

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import hmac
 import io
+import json
 import logging
 import uuid
 import zipfile
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from email.utils import format_datetime, parsedate_to_datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import (
     APIRouter,
@@ -49,12 +52,14 @@ from app.models import (
     SlotBenefit,
     SlotStatus,
     StaffMember,
+    utcnow,
 )
 from app.security import hash_password, issue_session, verify_password
 from app.services import (
     DomainError,
     audit,
     balance,
+    booking_mail,
     campaigns,
     cards,
     inbox,
@@ -562,6 +567,83 @@ def add_staff(body: StaffIn, ctx: Owner, db: Db) -> dict[str, str]:
 # --- Booking systems: generic webhook ----------------------------------------
 
 
+def _mail_fields(data: Mapping[str, Any]) -> tuple[list[str], str, str, str, str]:
+    """Recipients, sender, subject, html and text from the inbound mail services we
+    accept: a plain JSON shape, Postmark's JSON, or Mailgun's form fields."""
+
+    def first(*keys: str) -> str:
+        for k in keys:
+            v = data.get(k)
+            if isinstance(v, str) and v:
+                return v
+        return ""
+
+    to: list[str] = []
+    for k in ("to", "To", "recipient", "OriginalRecipient"):
+        v = data.get(k)
+        if isinstance(v, str):
+            to += [x for x in v.split(",") if x.strip()]
+    for item in data.get("ToFull") or []:
+        if isinstance(item, dict) and isinstance(item.get("Email"), str):
+            to.append(item["Email"])
+    return (
+        to,
+        first("from", "From", "sender"),
+        first("subject", "Subject"),
+        first("html", "HtmlBody", "body-html"),
+        first("text", "TextBody", "body-plain"),
+    )
+
+
+@api.post("/hooks/mail")
+async def inbound_mail(request: Request, db: Db, key: str = "") -> dict[str, str]:
+    """Forwarded booking mails, delivered by the mail service. Always answers 200 for a
+    mail we cannot place, so the service does not keep retrying it."""
+    expected = get_settings().inbound_mail_key
+    if not expected or not hmac.compare_digest(key, expected):
+        raise HTTPException(status_code=403)
+    body = await request.body()
+    if len(body) > 512_000:
+        raise DomainError("payload_too_large", 413)
+    if request.headers.get("content-type", "").startswith("application/json"):
+        try:
+            data: Mapping[str, Any] = json.loads(body)
+        except ValueError:
+            return {"outcome": "invalid"}
+    else:
+        data = dict(await request.form())
+    to, sender, subject, html, plain = _mail_fields(data)
+    business_id = booking_mail.business_for_address(db, to)
+    if business_id is None:
+        return {"outcome": "unknown_address"}
+    set_tenant(db, business_id)
+    business = db.get(Business, business_id)
+    assert business is not None
+    return {"outcome": booking_mail.receive(db, business, sender, subject, html, plain)}
+
+
+@api.get("/mail-inbox")
+def mail_inbox_view(ctx: Owner, db: Db) -> dict[str, object]:
+    return booking_mail.view(db, ctx)
+
+
+@api.post("/mail-inbox")
+def mail_inbox_setup(ctx: Owner, db: Db, rotate: bool = False) -> dict[str, object]:
+    booking_mail.setup(db, ctx, rotate=rotate)
+    return booking_mail.view(db, ctx)
+
+
+class MailInboxIn(BaseModel):
+    active: bool
+    count_visits: bool
+
+
+@api.patch("/mail-inbox")
+def mail_inbox_update(body: MailInboxIn, ctx: Owner, db: Db) -> dict[str, object]:
+    booking_mail.update(db, ctx, active=body.active, count_visits=body.count_visits)
+    return booking_mail.view(db, ctx)
+
+
 @api.post("/hooks/{slug}/appointments")
 async def appointment_webhook(
     slug: str,
@@ -665,6 +747,12 @@ class SlotIn(BaseModel):
 def list_slots(ctx: Manager, db: Db) -> list[dict[str, object]]:
     slots.send_due(db, ctx.business)
     return slots.list_offers(db, ctx)
+
+
+@api.get("/slots/freed")
+def freed_slots(ctx: Manager, db: Db) -> list[dict[str, object]]:
+    """Times that came free in the booking system (cancelled or moved), to offer."""
+    return booking_mail.freed_slots(db, ctx.business.id, utcnow())
 
 
 @api.post("/slots", status_code=201)
