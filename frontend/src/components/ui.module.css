@@ -255,3 +255,22 @@
 .linkButton:hover {
   color: var(--ink);
 }
+
+.check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  cursor: pointer;
+}
+
+.check input {
+  margin: 0;
+  margin-top: var(--space-1);
+  accent-color: var(--accent);
+}
+
+.checkText {
+  display: grid;
+  gap: var(--space-1);
+}

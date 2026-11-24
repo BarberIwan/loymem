@@ -30,7 +30,7 @@ from app.models import (
     RewardStatus,
     utcnow,
 )
-from app.services import DomainError, NotFound, audit
+from app.services import DomainError, NotFound, audit, booking_mail
 from app.services.cards import StaffContext
 from app.services.owner import has_consent
 from app.services.rhythm import visit_statuses
@@ -125,10 +125,13 @@ def opportunities(
             )
         )
 
+    booked = booking_mail.upcoming_customer_ids(db, bid, now)
     for s in visit_statuses(db, bid, now):
         c = customers.get(s.customer_id)
         if c is None or not s.due or (s.customer_id, "due_for_visit") in hidden:
             continue
+        if s.customer_id in booked:
+            continue  # already has an appointment: nothing to remind
         if s.customer_id in seen_reward:
             continue  # one card per customer; the reward is the better reason
         ok, channel = contact(c)

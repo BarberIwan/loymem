@@ -43,7 +43,7 @@ services:
       - |
         while true; do
           python scripts/send_slot_groups.py; python scripts/send_outbox.py
-          python scripts/send_wallet_updates.py
+          python scripts/send_wallet_updates.py; python scripts/record_booked_visits.py
           if [ "$$(date +%H%M)" = "0300" ]; then
             python scripts/memberships_daily.py; python scripts/check_balances.py
           fi

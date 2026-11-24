@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pass } from "@/components/Pass";
 import { Qr } from "@/components/Qr";
 import { StaffPanel } from "@/components/StaffPanel";
+import { MailInboxPanel } from "@/components/MailInboxPanel";
 import { WebhookPanel } from "@/components/WebhookPanel";
 import { Button, Field, LinkButton, Notice, Panel, uiStyles } from "@/components/ui";
 import { api, type Palette } from "@/lib/api";
@@ -193,6 +194,7 @@ export default function SettingsPage() {
           </Panel>
           )}
           <StaffPanel />
+          <MailInboxPanel />
           <WebhookPanel />
           <Panel title={t("signupTitle")}>
             <div className={`${w.stack} ${w.centre}`} id="aanmelden">

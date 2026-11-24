@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     secret_key: str = DEV_SECRET
     environment: str = "development"
     public_base_url: str = "http://localhost:3000"
+    # Forwarded booking mails: addresses are <slug>.<token>@<inbound_mail_domain>,
+    # and the mail service calls our endpoint with ?key=<inbound_mail_key>.
+    inbound_mail_domain: str = ""
+    inbound_mail_key: str = ""
     session_hours: int = 12
     reward_code_seconds: int = 90
     reissue_link_minutes: int = 30

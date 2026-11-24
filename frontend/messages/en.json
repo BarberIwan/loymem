@@ -67,7 +67,8 @@
     "spend_not_found": "This entry does not exist.",
     "nothing_to_refund": "There is nothing left to refund here.",
     "refund_amount_out_of_range": "That amount is not possible: at most what was paid for this period.",
-    "unknown_reason": "Choose a reason."
+    "unknown_reason": "Choose a reason.",
+    "mail_inbox_not_set_up": "Create your inbound address first."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -386,7 +387,10 @@
     "claims": "{count} of {total} claimed",
     "emptyTitle": "No free slots yet",
     "emptyBody": "When an appointment drops out, release it here. Customers on the waitlist get a message, the best fit first.",
-    "emptyExample": "Example: today 14:30, haircut, bookable until 13:45, two extra stamps."
+    "emptyExample": "Example: today 14:30, haircut, bookable until 13:45, two extra stamps.",
+    "freedTitle": "Came free in your calendar",
+    "freedLead": "Appointments that were cancelled or moved. Pick one to offer the slot.",
+    "freedOffer": "Offer"
   },
   "membership": {
     "title": "Memberships and bundles",
@@ -579,5 +583,39 @@
     "s4": "Print the signup code and put it by the till",
     "s5": "Add staff",
     "done": "Done"
+  },
+  "mailInbox": {
+    "title": "Appointments from your booking system",
+    "lead": "Does your business use {systems}? Forward the notifications about online appointments to your own address here. The platform then knows who is coming, which times come free and, if you like, who has been.",
+    "notReady": "Not available yet: the inbound mail address has not been set up.",
+    "setUp": "Create my inbound address",
+    "address": "Your inbound address",
+    "addressHelp": "Only for your business. Do not share it; a new address retires the old one.",
+    "copy": "Copy address",
+    "copied": "Copied",
+    "howTitle": "How to set it up (Gmail)",
+    "step1": "Open Gmail on your computer, click the gear at the top right and choose See all settings.",
+    "step2": "Go to Forwarding and POP/IMAP, click Add a forwarding address and enter: {address}",
+    "step3Wait": "Gmail sends a confirmation code to that address. Refresh this page after a minute; the code then shows here.",
+    "step3Code": "Your confirmation code is {code}. Enter it in Gmail and click Verify.",
+    "step4": "Create a filter: search From: {sender}, click Create filter, tick Forward it to and choose your inbound address.",
+    "step5": "Done. New, moved and cancelled online appointments arrive below. Appointments you put in the calendar yourself are not forwarded by the system; scan those at the counter.",
+    "countVisits": "Past appointments count as a visit",
+    "countVisitsHelp": "Half an hour after the end the customer gets a stamp, unless the appointment was cancelled. Someone who did not show still gets a stamp; only turn this on if that rarely happens.",
+    "active": "Process forwarded mails",
+    "recent": "Last received",
+    "none": "Nothing received yet.",
+    "rotate": "Create a new address",
+    "k_booked": "New appointment",
+    "k_moved": "Moved",
+    "k_cancelled": "Cancelled",
+    "k_gmail_confirm": "Gmail confirmation",
+    "k_other": "Other mail",
+    "o_matched": "customer found",
+    "o_no_customer": "not your customer",
+    "o_recorded": "time free",
+    "o_code_saved": "code shown above",
+    "o_ignored": "not from the booking system, ignored",
+    "o_not_understood": "not recognised"
   }
 }

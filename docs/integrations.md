@@ -60,3 +60,24 @@ Wallet-API; een opgeslagen-maar-nooit-bewaarde pas wordt overgeslagen.
 Pushes van Apple komen alleen aan in productie (niet via de sandbox). Nodig: de
 sleutels die al voor de passen nodig zijn, en `LOYMEM_PUBLIC_BASE_URL` op het
 echte https-adres.
+
+## Boekingsmails doorsturen (systemen zonder open koppeling)
+
+Salonized, Salonkee en Fresha hebben geen openbare koppeling. Ze mailen de zaak
+wel bij elke online afspraak. De eigenaar maakt in Instellingen een eigen
+ontvangstadres (`<slug>.<geheim>@<LOYMEM_INBOUND_MAIL_DOMAIN>`) en laat Gmail de
+meldingen daarheen doorsturen; de bevestigingscode van Gmail verschijnt in het
+scherm.
+
+De maildienst (Postmark inbound, Mailgun routes of een eigen omzetter) roept
+`POST /api/v1/hooks/mail?key=<LOYMEM_INBOUND_MAIL_KEY>` aan met JSON
+(`to`, `from`, `subject`, `html`, `text`), Postmarks JSON of Mailguns
+formuliervelden. Alleen mails van het boekingssysteem zelf tellen.
+
+Wat het oplevert: wie al een afspraak heeft krijgt geen herinnering, vrijgekomen
+tijden staan klaar om aan te bieden, en (als de zaak dat aanzet) een afgelopen,
+niet geannuleerde afspraak telt als bezoek. Afspraken die de zaak zelf in de
+agenda zet, mailt het systeem niet; die blijven via de scan aan de balie lopen.
+
+Lezers per systeem staan in `backend/app/integrations/`; nu alleen Salonized
+(Nederlandse mails, opbouw gecontroleerd op echte mails van november 2026).

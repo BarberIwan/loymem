@@ -785,6 +785,66 @@ class WalletRegistration(Base):
     )
 
 
+class MailInbox(Base):
+    """A business's own address for forwarded booking mails."""
+
+    __tablename__ = "mail_inboxes"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("businesses.id"), nullable=False, unique=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    generation: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=1)
+    active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    count_visits: Mapped[bool] = mapped_column(default=False, nullable=False)
+    gmail_code: Mapped[str | None] = mapped_column(String(12))
+    last_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+
+
+class Appointment(Base):
+    """An appointment as a booking system reported it. Personal data only for customers."""
+
+    __tablename__ = "appointments"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    source: Mapped[str] = mapped_column(String(20), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(40))
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("customers.id"))
+    name_hash: Mapped[str | None] = mapped_column(String(64))
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(12), nullable=False, default="booked")
+    service: Mapped[str | None] = mapped_column(String(120))
+    staff: Mapped[str | None] = mapped_column(String(60))
+    visit_recorded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+    updated_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint("status in ('booked', 'cancelled')", name="appointment_status"),
+        UniqueConstraint("business_id", "source", "external_id", name="uq_appointment_ext"),
+        Index("ix_appointments_business_start", "business_id", "starts_at"),
+        Index("ix_appointments_customer", "customer_id"),
+    )
+
+
+class MailReceipt(Base):
+    """One forwarded mail: what kind and what came of it. Nothing of its content."""
+
+    __tablename__ = "mail_receipts"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(20), nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (Index("ix_mail_receipts_business", "business_id", "created_at"),)
+
+
 class Campaign(Base):
     """A message to a group of customers, with a control group that gets nothing.
 
