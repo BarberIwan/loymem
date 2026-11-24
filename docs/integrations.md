@@ -40,3 +40,23 @@ Nog niet onderzocht; volgt uit fase 0. Per systeem komt hier: koppelmethode,
 autorisatie, kosten, partnervereisten, eigen spaarsysteem ja of nee,
 geverifieerd ja of nee, bron en datum. Zonder vastgelegd bewijs toont het product
 geen koppeling, alleen "boekingslink en medewerkerscan".
+
+## Wallet-passen live bijwerken
+
+Een Apple-pas bevat `webServiceURL` (`<publieke basis>/api/v1/wallet/apple`) en
+een eigen token per pas (afgeleid van de serversleutel en de klant, nooit de
+kaartlink). De telefoon meldt zich daarmee aan op Apples vaste paden onder
+`/api/v1/wallet/apple/v1/…`: aanmelden, afmelden, vragen welke passen veranderd
+zijn, de nieuwe pas ophalen en fouten melden.
+
+`scripts/send_wallet_updates.py` draait elke minuut in de werker. Het vergelijkt
+per pas wat hij laatst toonde (stempels, beloning, tegoed, naam, kleuren) met de
+kaart nu. Is er iets veranderd, dan krijgt elk toestel met die pas een lege push
+via APNs (HTTP/2, met het pascertificaat, onderwerp = pass type id) en haalt de
+telefoon zelf de nieuwe pas op. Toestellen die Apple als verdwenen meldt, worden
+vergeten. Een opgeslagen Google-pas krijgt zijn punten bijgewerkt via de
+Wallet-API; een opgeslagen-maar-nooit-bewaarde pas wordt overgeslagen.
+
+Pushes van Apple komen alleen aan in productie (niet via de sandbox). Nodig: de
+sleutels die al voor de passen nodig zijn, en `LOYMEM_PUBLIC_BASE_URL` op het
+echte https-adres.

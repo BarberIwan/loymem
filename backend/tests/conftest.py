@@ -7,6 +7,8 @@ owner role, the way a migration would.
 
 from __future__ import annotations
 
+import base64
+import json
 import os
 import subprocess
 import uuid
@@ -16,6 +18,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509.oid import NameOID
 
 BASE = os.environ.get("LOYMEM_TEST_DB_HOST", "localhost:5433")
 APP_URL = f"postgresql+psycopg://loymem_app:loymem_app@{BASE}/loymem_test"
@@ -28,6 +34,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+from app.config import get_settings  # noqa: E402
 from app.db import reset_engine, session_factory, set_tenant  # noqa: E402
 from app.integrations.payments import FakeProvider  # noqa: E402
 from app.main import app  # noqa: E402
@@ -211,3 +218,49 @@ def fake(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeProvider]:
     monkeypatch.setattr(get_settings(), "memberships_enabled", True)
     yield p
     memberships.set_provider(None)
+
+
+def _cert() -> tuple[bytes, bytes, rsa.RSAPrivateKey]:
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "toets")])
+    now = datetime.now(UTC)
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(name)
+        .issuer_name(name)
+        .public_key(key.public_key())
+        .serial_number(1)
+        .not_valid_before(now)
+        .not_valid_after(now + timedelta(days=1))
+        .sign(key, hashes.SHA256())
+    )
+    return (
+        cert.public_bytes(serialization.Encoding.PEM),
+        key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        ),
+        key,
+    )
+
+
+@pytest.fixture
+def wallet_keys(monkeypatch: pytest.MonkeyPatch) -> rsa.RSAPrivateKey:
+    s = get_settings()
+    cert, key, raw = _cert()
+    wwdr, _, _ = _cert()
+    b64 = lambda v: base64.b64encode(v).decode()  # noqa: E731
+    account = {"client_email": "pas@toets.example", "private_key": key.decode()}
+    for name, value in {
+        "wallet_enabled": True,
+        "apple_pass_type_id": "pass.example.toets",
+        "apple_team_id": "TEAM123456",
+        "apple_pass_cert_pem_b64": b64(cert),
+        "apple_pass_key_pem_b64": b64(key),
+        "apple_wwdr_pem_b64": b64(wwdr),
+        "google_wallet_issuer_id": "3388000000000000000",
+        "google_wallet_service_account_b64": b64(json.dumps(account).encode()),
+    }.items():
+        monkeypatch.setattr(s, name, value)
+    return raw

@@ -35,7 +35,7 @@ services:
     build: ../backend
     restart: unless-stopped
     env_file: .env
-    # Every minute: send mail and the next group of free-slot offers.
+    # Every minute: mail, the next group of free-slot offers, wallet pass updates.
     # Every night at 03:00: memberships and the balance check.
     command:
       - sh
@@ -43,6 +43,7 @@ services:
       - |
         while true; do
           python scripts/send_slot_groups.py; python scripts/send_outbox.py
+          python scripts/send_wallet_updates.py
           if [ "$$(date +%H%M)" = "0300" ]; then
             python scripts/memberships_daily.py; python scripts/check_balances.py
           fi

@@ -1,13 +1,25 @@
 from __future__ import annotations
 
 import io
+import logging
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import UTC, datetime
+from email.utils import format_datetime, parsedate_to_datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Header,
+    HTTPException,
+    Path,
+    Request,
+    Response,
+    UploadFile,
+)
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator, model_validator
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
@@ -51,6 +63,7 @@ from app.services import (
     onboarding,
     owner,
     slots,
+    wallet_live,
     webhooks,
 )
 from app.services.brand import card_palette
@@ -872,35 +885,16 @@ def unsubscribe(slug: str, token: str, db: Db) -> dict[str, str]:
 # --- Wallet passes ----------------------------------------------------------------
 
 
-def _pass_data(db: Session, b: Business, secret: str) -> wallet.PassData:
-    customer = cards.customer_by_card(db, b, secret)
-    view = cards.card_view(db, b, customer)
-    program = view["program"]
-    assert isinstance(program, dict)
-    palette = card_palette(b.brand_colour)
-    return wallet.PassData(
-        serial=str(customer.id),
-        business_name=b.name,
-        program_name=str(program["name"]),
-        first_name=customer.first_name,
-        stamps=int(str(view["stamps"])),
-        stamps_required=int(program["stamps_required"]),
-        reward=str(program["reward"]),
-        scan_token=scan_token_for(customer),
-        background=palette["background"],
-        foreground=palette["text"],
-        link_url=b.booking_url,
-    )
-
-
 @api.get("/public/{slug}/card/{secret}/wallet/apple")
 def apple_wallet(slug: str, secret: str, db: Db) -> Response:
     if not wallet.apple_configured():
         raise HTTPException(status_code=404, detail="wallet_not_available")
     b = business_by_slug(db, slug)
-    body = wallet.apple_pass(_pass_data(db, b, secret))
+    customer = cards.customer_by_card(db, b, secret)
+    data = wallet_live.pass_data(db, b, customer)
+    wallet_live.remember(db, b, customer, data)
     return Response(
-        body,
+        wallet.apple_pass(data),
         media_type="application/vnd.apple.pkpass",
         headers={"Content-Disposition": f'attachment; filename="{b.slug}.pkpass"'},
     )
@@ -911,7 +905,126 @@ def google_wallet(slug: str, secret: str, db: Db) -> dict[str, str]:
     if not wallet.google_configured():
         raise HTTPException(status_code=404, detail="wallet_not_available")
     b = business_by_slug(db, slug)
-    return {"url": wallet.google_save_url(_pass_data(db, b, secret), b.slug)}
+    customer = cards.customer_by_card(db, b, secret)
+    data = wallet_live.pass_data(db, b, customer)
+    wallet_live.remember(db, b, customer, data, google=True)
+    return {"url": wallet.google_save_url(data, b.slug)}
+
+
+# Apple's pass web service. Paths and status codes are Apple's; the phone calls
+# these by itself. See docs/integrations.md.
+APPLE = "/wallet/apple/v1"
+
+
+def _apple_pass(
+    db: Session, pass_type: str, serial: str, authorization: str | None
+) -> tuple[Business, Customer]:
+    if not wallet.apple_configured() or pass_type != get_settings().apple_pass_type_id:
+        raise HTTPException(status_code=404)
+    parsed = wallet_live.parse_serial(serial)
+    if parsed is None:
+        raise HTTPException(status_code=404)
+    slug, customer_id = parsed
+    if not wallet_live.token_ok(customer_id, authorization):
+        raise HTTPException(status_code=401)
+    b = business_by_slug(db, slug)
+    customer = db.scalar(
+        select(Customer).where(
+            Customer.id == customer_id,
+            Customer.business_id == b.id,
+            Customer.anonymised_at.is_(None),
+        )
+    )
+    if customer is None:
+        raise HTTPException(status_code=401)
+    return b, customer
+
+
+class AppleRegistrationIn(BaseModel):
+    pushToken: str = Field(min_length=8, max_length=200, pattern=r"^[A-Za-z0-9]+$")  # noqa: N815
+
+
+DEVICE = Annotated[str, Path(min_length=4, max_length=64, pattern=r"^[A-Za-z0-9]+$")]
+
+
+@api.post(APPLE + "/devices/{device}/registrations/{pass_type}/{serial}")
+def apple_register(
+    device: DEVICE,
+    pass_type: str,
+    serial: str,
+    body: AppleRegistrationIn,
+    db: Db,
+    authorization: str | None = Header(default=None),
+) -> Response:
+    b, customer = _apple_pass(db, pass_type, serial, authorization)
+    created = wallet_live.register(db, b, customer, device, body.pushToken)
+    return Response(status_code=201 if created else 200)
+
+
+@api.delete(APPLE + "/devices/{device}/registrations/{pass_type}/{serial}")
+def apple_unregister(
+    device: DEVICE,
+    pass_type: str,
+    serial: str,
+    db: Db,
+    authorization: str | None = Header(default=None),
+) -> Response:
+    b, customer = _apple_pass(db, pass_type, serial, authorization)
+    wallet_live.unregister(db, b, customer, device)
+    return Response(status_code=200)
+
+
+@api.get(APPLE + "/devices/{device}/registrations/{pass_type}")
+def apple_changed(
+    device: DEVICE,
+    pass_type: str,
+    db: Db,
+    passesUpdatedSince: str | None = None,  # noqa: N803
+) -> Response:
+    if not wallet.apple_configured() or pass_type != get_settings().apple_pass_type_id:
+        raise HTTPException(status_code=404)
+    since = None
+    if passesUpdatedSince:
+        try:
+            since = datetime.fromisoformat(passesUpdatedSince)
+        except ValueError:
+            since = None
+    rows = wallet_live.changed_serials(db, device, since)
+    if not rows:
+        return Response(status_code=204)
+    last = max(changed for _, changed in rows)
+    return JSONResponse({"serialNumbers": [s for s, _ in rows], "lastUpdated": last.isoformat()})
+
+
+@api.get(APPLE + "/passes/{pass_type}/{serial}")
+def apple_latest(
+    pass_type: str,
+    serial: str,
+    db: Db,
+    authorization: str | None = Header(default=None),
+    if_modified_since: str | None = Header(default=None),
+) -> Response:
+    b, customer = _apple_pass(db, pass_type, serial, authorization)
+    data = wallet_live.pass_data(db, b, customer)
+    changed = wallet_live.remember(db, b, customer, data).astimezone(UTC).replace(microsecond=0)
+    if if_modified_since:
+        try:
+            if parsedate_to_datetime(if_modified_since) >= changed:
+                return Response(status_code=304)
+        except (TypeError, ValueError):
+            pass
+    return Response(
+        wallet.apple_pass(data),
+        media_type="application/vnd.apple.pkpass",
+        headers={"Last-Modified": format_datetime(changed, usegmt=True)},
+    )
+
+
+@api.post(APPLE + "/log")
+async def apple_log(request: Request) -> Response:
+    body = await request.body()
+    logging.getLogger("wallet").warning("pass log: %r", body[:500])  # errors the phone reports
+    return Response(status_code=200)
 
 
 # --- New business and staff -----------------------------------------------------

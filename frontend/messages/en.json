@@ -97,7 +97,7 @@
     "codeLeft": "{time} left.",
     "apple": "Add to Apple Wallet",
     "google": "Add to Google Wallet",
-    "walletNote": "The pass in your wallet shows your stamps as of now. The card here is always up to date.",
+    "walletNote": "The pass in your wallet updates by itself when you get a stamp or spend balance.",
     "balance": "Balance"
   },
   "lost": {

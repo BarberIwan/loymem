@@ -4,9 +4,10 @@ The pass carries the same scan code as the web card, so staff scan it the same
 way; it identifies the customer and never grants anything by itself. Both stay
 off until the certificates are configured (LOYMEM_WALLET_ENABLED and the keys).
 
-The pass shows the stamp count at the moment it was added. Live updates need the
-Apple push service and the Google object API; that comes after the pilot. The
-web card stays the place where the count is always current.
+Live updates: the Apple pass carries a web service URL and a per-pass token, so
+the phone registers itself; when the stamps or the balance change we send an
+empty push to the phone (APNs, HTTP/2, the pass certificate) and it fetches the
+new pass. A Google pass is updated by patching its object through the API.
 """
 
 from __future__ import annotations
@@ -15,12 +16,16 @@ import base64
 import hashlib
 import io
 import json
+import os
+import ssl
 import struct
+import tempfile
 import time
 import zipfile
 import zlib
 from dataclasses import dataclass
 
+import httpx
 import jwt
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -42,6 +47,23 @@ class PassData:
     background: str
     foreground: str
     link_url: str | None  # never the secret card link: a pass can end up on other servers
+    balance: str | None = None  # formatted prepaid balance, when there is one
+    web_service_url: str | None = None
+    auth_token: str | None = None
+
+    def shown(self) -> dict[str, object]:
+        """What the customer sees; a change here is what warrants an update."""
+        return {
+            "stamps": self.stamps,
+            "required": self.stamps_required,
+            "reward": self.reward,
+            "program": self.program_name,
+            "business": self.business_name,
+            "name": self.first_name,
+            "balance": self.balance,
+            "colours": [self.background, self.foreground],
+            "link": self.link_url,
+        }
 
 
 def _b64(value: str) -> bytes:
@@ -116,7 +138,20 @@ def apple_pass(data: PassData) -> bytes:
                     "value": f"{data.stamps} / {data.stamps_required}",
                 }
             ],
-            "secondaryFields": [{"key": "reward", "label": "", "value": data.reward}],
+            "secondaryFields": [{"key": "reward", "label": "", "value": data.reward}]
+            + (
+                [
+                    {
+                        "key": "balance",
+                        "label": "Tegoed",
+                        "value": data.balance,
+                        "textAlignment": "PKTextAlignmentRight",
+                        "changeMessage": "Je tegoed is nu %@",
+                    }
+                ]
+                if data.balance
+                else []
+            ),
             "auxiliaryFields": (
                 [{"key": "name", "label": "", "value": data.first_name}] if data.first_name else []
             ),
@@ -126,6 +161,11 @@ def apple_pass(data: PassData) -> bytes:
                 else []
             ),
         },
+        **(
+            {"webServiceURL": data.web_service_url, "authenticationToken": data.auth_token}
+            if data.web_service_url and data.auth_token
+            else {}
+        ),
         "barcodes": [
             {
                 "format": "PKBarcodeFormatQR",
@@ -169,6 +209,22 @@ def apple_pass(data: PassData) -> bytes:
     return out.getvalue()
 
 
+def _google_points(data: PassData) -> dict[str, object]:
+    points: dict[str, object] = {
+        "loyaltyPoints": {
+            "label": data.program_name,
+            "balance": {"string": f"{data.stamps} / {data.stamps_required}"},
+        }
+    }
+    if data.balance:
+        points["secondaryLoyaltyPoints"] = {"label": "Tegoed", "balance": {"string": data.balance}}
+    return points
+
+
+def google_object_id(serial: str) -> str:
+    return f"{get_settings().google_wallet_issuer_id}.{serial}"
+
+
 def google_save_url(data: PassData, business_slug: str) -> str:
     s = get_settings()
     account = json.loads(_b64(s.google_wallet_service_account_b64))
@@ -191,14 +247,11 @@ def google_save_url(data: PassData, business_slug: str) -> str:
             ],
             "loyaltyObjects": [
                 {
-                    "id": f"{issuer}.{data.serial}",
+                    "id": google_object_id(data.serial),
                     "classId": class_id,
                     "state": "ACTIVE",
                     "accountName": data.first_name or "",
-                    "loyaltyPoints": {
-                        "label": data.program_name,
-                        "balance": {"string": f"{data.stamps} / {data.stamps_required}"},
-                    },
+                    **_google_points(data),
                     "barcode": {
                         "type": "QR_CODE",
                         "value": data.scan_token,
@@ -219,3 +272,85 @@ def google_save_url(data: PassData, business_slug: str) -> str:
     }
     token = jwt.encode(claims, account["private_key"], algorithm="RS256")
     return f"https://pay.google.com/gp/v/save/{token}"
+
+
+# --- Live updates ------------------------------------------------------------------
+
+APNS_HOST = "https://api.push.apple.com"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"  # noqa: S105 - a URL, not a secret
+GOOGLE_OBJECTS = "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject"
+
+
+def _apns_context() -> ssl.SSLContext:
+    """TLS client context with the pass certificate; APNs authenticates with it."""
+    s = get_settings()
+    ctx = ssl.create_default_context()
+    fd, path = tempfile.mkstemp(suffix=".pem")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(_b64(s.apple_pass_cert_pem_b64) + b"\n" + _b64(s.apple_pass_key_pem_b64))
+        ctx.load_cert_chain(path)
+    finally:
+        os.unlink(path)
+    return ctx
+
+
+def apns_push(push_tokens: list[str]) -> list[str]:
+    """Tell each phone its pass changed. Returns the tokens Apple says are gone."""
+    if not push_tokens:
+        return []
+    topic = get_settings().apple_pass_type_id
+    gone: list[str] = []
+    with httpx.Client(http2=True, verify=_apns_context(), timeout=10) as c:
+        for token in push_tokens:
+            r = c.post(
+                f"{APNS_HOST}/3/device/{token}",
+                content=b"{}",
+                headers={"apns-topic": topic},  # Wallet ignores the payload; {} is enough
+            )
+            if r.status_code == 410 or (r.status_code == 400 and "BadDeviceToken" in r.text):
+                gone.append(token)
+            elif r.status_code >= 400:
+                raise RuntimeError(f"apns {r.status_code}: {r.text[:200]}")
+    return gone
+
+
+def _google_access_token() -> str:
+    account = json.loads(_b64(get_settings().google_wallet_service_account_b64))
+    now = int(time.time())
+    assertion = jwt.encode(
+        {
+            "iss": account["client_email"],
+            "scope": "https://www.googleapis.com/auth/wallet_object.issuer",
+            "aud": GOOGLE_TOKEN_URL,
+            "iat": now,
+            "exp": now + 3600,
+        },
+        account["private_key"],
+        algorithm="RS256",
+    )
+    r = httpx.post(
+        GOOGLE_TOKEN_URL,
+        data={"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": assertion},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return str(r.json()["access_token"])
+
+
+def google_update(updates: list[PassData]) -> int:
+    """Patch the points on saved Google passes. A pass never saved is skipped."""
+    if not updates:
+        return 0
+    headers = {"Authorization": f"Bearer {_google_access_token()}"}
+    done = 0
+    with httpx.Client(timeout=10, headers=headers) as c:
+        for data in updates:
+            r = c.patch(
+                f"{GOOGLE_OBJECTS}/{google_object_id(data.serial)}", json=_google_points(data)
+            )
+            if r.status_code == 404:
+                continue  # the customer opened the save link but never saved
+            r.raise_for_status()
+            done += 1
+    return done
