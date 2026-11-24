@@ -50,6 +50,9 @@
   --space-7: 3rem;
   --space-8: 4rem;
   --hit: 3rem;
+  /* Select chevron in ink-3; a data URI cannot read custom properties. */
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%236f685f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+  --chevron-size: 0.75rem;
   --hit-large: 4.5rem;
   --measure: 34rem;
   --page: 60rem;
