@@ -456,9 +456,6 @@
     "emptyBody": "Begin met één abonnement dat bij je vaste klanten past.",
     "emptyExample": "Voorbeeld: Knipabonnement, 35 euro per maand, 2 knipbeurten.",
     "termsHeading": "Voorwaarden voor de klant",
-    "unusedPh": "Bijvoorbeeld: ongebruikte knipbeurten vervallen aan het eind van de maand.",
-    "noShowPh": "Bijvoorbeeld: wie niet komt zonder af te melden, verliest die knipbeurt.",
-    "pausePh": "Bijvoorbeeld: pauzeren kan een maand per jaar.",
     "summaryMonth": "{price} per maand · {count, plural, one {# bezoek} other {# bezoeken}} · voorwaarden versie {version}",
     "summaryOnce": "{price} eenmalig · {count, plural, one {# bezoek} other {# bezoeken}} · voorwaarden versie {version}",
     "kindCredit": "Tegoed (vooraf betaald)",
@@ -469,8 +466,19 @@
     "bonusTooHigh": "Een tegoed kan hoogstens het dubbele waard zijn van wat de klant betaalt.",
     "valueBelowPrice": "Het tegoed moet minstens zoveel waard zijn als de klant betaalt.",
     "unusedCredit": "Wat gebeurt er met niet besteed tegoed",
-    "unusedCreditPh": "Bijvoorbeeld: tegoed dat na een jaar niet is besteed, vervalt.",
-    "summaryCredit": "{price} betalen, {value} besteden · {percent}% extra · {days} dagen geldig · voorwaarden versie {version}"
+    "summaryCredit": "{price} betalen, {value} besteden · {percent}% extra · {days} dagen geldig · voorwaarden versie {version}",
+    "termsLead": "Kies per onderwerp wat voor jouw zaak geldt. De zinnen zijn vast en voor alle zaken hetzelfde; de klant leest ze vóór het betalen.",
+    "fixed": "vast",
+    "unusedOpt": {
+      "expire_period": "Vervallen per maand",
+      "roll_one_period": "Eén maand doorschuiven"
+    },
+    "noShowOpt": {
+      "free": "Kost niets",
+      "no_show_counts": "Alleen niet komen zonder afmelden",
+      "late_24h": "Afmelden tot 24 uur vooraf",
+      "late_24h_first_free": "Tot 24 uur vooraf, eerste keer per jaar vrij"
+    }
   },
   "campaigns": {
     "title": "Campagnes",

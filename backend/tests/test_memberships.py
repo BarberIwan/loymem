@@ -21,9 +21,8 @@ PLAN = {
     "credits": 2,
     "cancel_notice_days": 0,
     "cooling_off_days": 14,
-    "unused_policy": "Ongebruikte knipbeurten vervallen aan het eind van de maand.",
-    "no_show_policy": "Niet komen zonder afmelden kost de credit.",
-    "pause_policy": "Pauzeren kan een maand per jaar.",
+    "unused_rule": "expire_period",
+    "no_show_rule": "no_show_counts",
 }
 
 

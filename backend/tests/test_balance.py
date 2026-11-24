@@ -21,7 +21,6 @@ CREDIT = {
     "price_cents": 5000,
     "value_cents": 7500,
     "validity_days": 365,
-    "unused_policy": "Niet besteed tegoed vervalt na een jaar.",
 }
 
 
@@ -87,8 +86,8 @@ def test_database_refuses_a_value_above_double(shop: Shop) -> None:
             credits=0,
             validity_days=365,
             unused_policy="x" * 10,
-            no_show_policy="x" * 10,
-            pause_policy="x" * 10,
+            no_show_policy="",
+            pause_policy="",
         )
     )
     with pytest.raises(DBAPIError):

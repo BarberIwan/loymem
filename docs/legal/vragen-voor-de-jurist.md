@@ -26,3 +26,6 @@
     sluiting of overname van de zaak, en moet de bonus apart vermeld worden als
     korting? Valt een tegoed dat alleen bij die ene zaak te besteden is buiten
     de regels voor elektronisch geld (beperkt netwerk)?
+11. Vaste zinnen voor de voorwaarden (`voorwaarden-zinnen.md`): zijn ze
+    redelijk en duidelijk genoeg, en mag een zaak "telt als gebruikt bezoek"
+    hanteren bij laat afmelden of niet komen?

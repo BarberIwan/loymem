@@ -456,9 +456,6 @@
     "emptyBody": "Start with one membership that suits your regulars.",
     "emptyExample": "Example: Haircut membership, 35 euros a month, 2 haircuts.",
     "termsHeading": "Terms for the customer",
-    "unusedPh": "For example: unused haircuts expire at the end of the month.",
-    "noShowPh": "For example: whoever does not show without cancelling loses that haircut.",
-    "pausePh": "For example: pausing is possible one month a year.",
     "summaryMonth": "{price} a month · {count, plural, one {# visit} other {# visits}} · terms version {version}",
     "summaryOnce": "{price} once · {count, plural, one {# visit} other {# visits}} · terms version {version}",
     "kindCredit": "Balance (prepaid)",
@@ -469,8 +466,19 @@
     "bonusTooHigh": "A balance can be worth at most double what the customer pays.",
     "valueBelowPrice": "The balance must be worth at least what the customer pays.",
     "unusedCredit": "What happens to unspent balance",
-    "unusedCreditPh": "For example: balance not spent within a year expires.",
-    "summaryCredit": "Pay {price}, spend {value} · {percent}% extra · valid {days} days · terms version {version}"
+    "summaryCredit": "Pay {price}, spend {value} · {percent}% extra · valid {days} days · terms version {version}",
+    "termsLead": "Choose what applies to your business per subject. The sentences are fixed and the same for every business; the customer reads them before paying.",
+    "fixed": "fixed",
+    "unusedOpt": {
+      "expire_period": "Expire each month",
+      "roll_one_period": "Roll over one month"
+    },
+    "noShowOpt": {
+      "free": "Costs nothing",
+      "no_show_counts": "Only not showing up without cancelling",
+      "late_24h": "Cancel up to 24 hours ahead",
+      "late_24h_first_free": "24 hours ahead, first time a year free"
+    }
   },
   "campaigns": {
     "title": "Campaigns",
