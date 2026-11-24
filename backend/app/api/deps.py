@@ -19,8 +19,11 @@ def csrf_guard(request: Request, x_loymem: str | None = Header(default=None)) ->
     """A form on another site cannot set a custom header; a fetch from ours does."""
     # Booking systems call the webhook from their servers; it is signed instead.
     path = request.url.path
-    if path.startswith("/api/v1/hooks/") or (
-        path.startswith("/api/v1/payments/") and path.endswith("/webhook")
+    # Phones call Apple's pass web service themselves, with a per-pass token.
+    if (
+        path.startswith("/api/v1/hooks/")
+        or path.startswith("/api/v1/wallet/apple/")
+        or (path.startswith("/api/v1/payments/") and path.endswith("/webhook"))
     ):
         return
     if request.method not in SAFE_METHODS and x_loymem != "1":

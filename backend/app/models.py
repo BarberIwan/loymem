@@ -713,6 +713,40 @@ class ProviderConnection(Base):
     created_at: Mapped[datetime] = _created()
 
 
+class WalletPass(Base):
+    """What a customer's wallet pass last showed, to know when to push an update."""
+
+    __tablename__ = "wallet_passes"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id"), nullable=False, unique=True
+    )
+    digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    google_issued: Mapped[bool] = mapped_column(default=False, nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+
+class WalletRegistration(Base):
+    """A device that holds a customer's Apple pass, with its push token."""
+
+    __tablename__ = "wallet_registrations"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    device_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    push_token: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        UniqueConstraint("device_id", "customer_id", name="uq_wallet_device_pass"),
+        Index("ix_wallet_registrations_customer", "customer_id"),
+    )
+
+
 class Campaign(Base):
     """A message to a group of customers, with a control group that gets nothing.
 
