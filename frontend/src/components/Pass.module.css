@@ -98,6 +98,23 @@
   }
 }
 
+.balance {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: var(--hairline) dashed color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.balanceAmount {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: var(--lh-xl);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--track-tight);
+}
+
 .foot {
   display: grid;
   gap: var(--space-3);

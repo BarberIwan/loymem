@@ -21,3 +21,8 @@
 9. Import van bestaande klanten door een zaak: het platform geeft geïmporteerde
    klanten geen toestemming voor berichten. Wat mag de zaak hen wel sturen
    (bijvoorbeeld één uitnodiging voor de kaart)?
+10. Tegoed met bonus (bijvoorbeeld 50 euro betalen, 75 besteden): is een
+    geldigheid van een jaar redelijk, wat gebeurt er met niet besteed tegoed bij
+    sluiting of overname van de zaak, en moet de bonus apart vermeld worden als
+    korting? Valt een tegoed dat alleen bij die ene zaak te besteden is buiten
+    de regels voor elektronisch geld (beperkt netwerk)?

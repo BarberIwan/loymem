@@ -67,3 +67,16 @@ maildienst werkt zodra adres en sleutels gezet zijn (`LOYMEM_EMAIL_DELIVERY=smtp
 kan zeggen hebben een afmeldlink en `List-Unsubscribe`. De link opent een pagina
 die zelf afmeldt, zodat linkscanners van mailprogramma's niemand afmelden.
 Vijf mislukte pogingen, dan blijft het bericht staan met de fout erbij.
+
+## LM-11 Tegoed in euro's met bonus
+Een zaak kan naast abonnementen en bundels een tegoed verkopen: de klant
+betaalt een bedrag en kan een hoger bedrag besteden. Het geld gaat, net als bij
+bundels, rechtstreeks naar het eigen betaalaccount van de zaak; het platform
+houdt alleen bij wat er nog te besteden is, in een eigen grootboek
+(`balance_events`, alleen toevoegen). De waarde ligt tussen de prijs en het
+dubbele (database-check); boven 30% extra laat het scherm zien wat elke
+bestede euro de zaak dan oplevert. Een tegoed is minstens een jaar geldig.
+Besteden haalt eerst af van het tegoed dat het eerst vervalt. Een afboeking
+terugdraaien kan één keer, met reden: een manager of de eigenaar altijd, de
+medewerker zelf binnen tien minuten. Verkopen valt onder dezelfde vlag als
+abonnementen (`LOYMEM_MEMBERSHIPS_ENABLED`).

@@ -47,5 +47,13 @@ export type CardData = {
   wallet: { apple: boolean; google: boolean };
   waitlist: { service_id: string | null; days_mask: number; dayparts_mask: number; min_notice_minutes: number } | null;
   services: { id: string; name: string }[];
-  memberships: { plans: import("@/app/k/[slug]/[secret]/Memberships").PlanTerms[]; subscriptions: import("@/app/k/[slug]/[secret]/Memberships").Sub[] };
+  memberships: {
+    plans: import("@/app/k/[slug]/[secret]/Memberships").PlanTerms[];
+    subscriptions: import("@/app/k/[slug]/[secret]/Memberships").Sub[];
+    balance: Balance;
+    balance_history: BalanceLine[];
+  };
 };
+
+export type Balance = { cents: number; parts: { cents: number; expires: string }[] };
+export type BalanceLine = { kind: "topup" | "spend" | "expire"; cents: number; at: string; request_id: string | null; undone: boolean };

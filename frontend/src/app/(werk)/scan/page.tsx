@@ -1,10 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
 import { type Benefit, useBenefitText } from "@/lib/benefit";
+import { euros } from "@/lib/money";
 import { useErrorText } from "@/lib/useErrorText";
 import { useMe } from "@/lib/useMe";
 
@@ -19,6 +20,7 @@ type Found = {
   services: { id: string; name: string }[];
   claimed_offer: Benefit | null;
   membership: { plan: string; credits: number } | null;
+  balance: { cents: number };
 };
 
 type StampResult = { stamped: boolean; stamps: number; rewards_earned?: number; applied_offer: Benefit | null };
@@ -95,6 +97,8 @@ function StampFlow() {
     setBusy(false);
   }
 
+  const locale = useLocale();
+  const [spending, setSpending] = useState(false);
   const [creditNote, setCreditNote] = useState<string | null>(null);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   async function useCredit() {
@@ -109,6 +113,7 @@ function StampFlow() {
 
   function reset() {
     setRequestId(crypto.randomUUID());
+    setSpending(false);
     setCreditNote(null);
     setFound(null);
     setResult(null);
@@ -128,6 +133,18 @@ function StampFlow() {
 
   const name = found.first_name ?? t("customer");
   const total = found.program.stamps_required;
+  if (spending) {
+    return (
+      <BalanceSpend
+        customerId={found.customer_id}
+        name={name}
+        cents={found.balance.cents}
+        onBalance={(cents) => setFound({ ...found, balance: { cents } })}
+        onBack={() => setSpending(false)}
+        onNext={reset}
+      />
+    );
+  }
   return (
     <>
       <div className={s.person}>
@@ -135,6 +152,7 @@ function StampFlow() {
         <span className={s.name}>{name}</span>
         <span className={s.meta}>{`${found.stamps} / ${total}`}</span>
         {found.membership && <span className={s.meta}>{t("credits", { plan: found.membership.plan, count: found.membership.credits })}</span>}
+        {found.balance.cents > 0 && <span className={s.meta}>{t("balance", { amount: euros(found.balance.cents, locale) })}</span>}
         {found.claimed_offer && !result && <span className={s.offer}>{t("offerClaimed", { benefit: benefitText(found.claimed_offer) })}</span>}
       </div>
       {result ? (
@@ -182,11 +200,145 @@ function StampFlow() {
             </button>
           )}
           {creditNote && <p className={s.offer}>{creditNote}</p>}
+          {found.balance.cents > 0 && (
+            <button type="button" className={s.ghost} onClick={() => setSpending(true)} disabled={busy}>
+              {t("payWithBalance")}
+            </button>
+          )}
           <button type="button" className={s.ghost} onClick={reset}>
             {t("next")}
           </button>
         </>
       )}
+    </>
+  );
+}
+
+const UNDO_REASONS = ["undoWrongAmount", "undoWrongCustomer", "undoOther"] as const;
+
+/** Pay (part of) a treatment from the customer's prepaid balance. */
+function BalanceSpend({ customerId, name, cents, onBalance, onBack, onNext }: {
+  customerId: string;
+  name: string;
+  cents: number;
+  onBalance: (cents: number) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const t = useTranslations("scan");
+  const locale = useLocale();
+  const errorText = useErrorText();
+  const [value, setValue] = useState("");
+  const [requestId] = useState(() => crypto.randomUUID());
+  const [done, setDone] = useState<{ spent: number; left: number } | null>(null);
+  const [undone, setUndone] = useState<number | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const amount = Math.round(Number(value.replace(/\s/g, "").replace(",", ".")) * 100);
+  const valid = Number.isFinite(amount) && amount > 0 && amount <= cents;
+
+  async function spend() {
+    if (!valid) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await api<{ spent_cents: number; balance_cents: number }>("/balance/spend", {
+        method: "POST",
+        json: { customer_id: customerId, amount_cents: amount, request_id: requestId },
+      });
+      setDone({ spent: r.spent_cents, left: r.balance_cents });
+      onBalance(r.balance_cents);
+    } catch (e) {
+      setError(errorText(e));
+    }
+    setBusy(false);
+  }
+
+  async function undo(reason: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await api<{ restored_cents: number; balance_cents: number }>("/balance/undo", {
+        method: "POST",
+        json: { customer_id: customerId, request_id: requestId, reason },
+      });
+      setUndone(r.restored_cents);
+      onBalance(r.balance_cents);
+    } catch (e) {
+      setError(errorText(e));
+    }
+    setAsking(false);
+    setBusy(false);
+  }
+
+  if (done) {
+    return (
+      <>
+        <div className={s.result} role="status">
+          <span className={s.resultTitle}>{undone !== null ? t("spendUndone") : t("spent", { amount: euros(done.spent, locale) })}</span>
+          <span className={s.meta}>{t("balanceLeft", { name, amount: euros(undone !== null ? done.left + undone : done.left, locale) })}</span>
+        </div>
+        {error && <p className={s.error}>{error}</p>}
+        <button type="button" className={s.primary} onClick={onNext} autoFocus>
+          {t("next")}
+        </button>
+        {undone === null &&
+          (asking ? (
+            <div className={s.chips} role="group" aria-label={t("undoWhy")}>
+              {UNDO_REASONS.map((k) => (
+                <button key={k} type="button" className={s.chip} onClick={() => undo(t(k))} disabled={busy}>
+                  {t(k)}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button type="button" className={s.ghost} onClick={() => setAsking(true)}>
+              {t("undo")}
+            </button>
+          ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className={s.person}>
+        <span className={s.label}>{t("balanceOf", { name })}</span>
+        <span className={s.name}>{euros(cents, locale)}</span>
+      </div>
+      <label className={s.amount}>
+        <span className={s.label}>{t("amount")}</span>
+        <span className={s.amountRow}>
+          <span className={s.currency} aria-hidden>
+            €
+          </span>
+          <input
+            className={s.amountInput}
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder={t("amountPlaceholder")}
+            value={value}
+            onChange={(e) => setValue(e.target.value.replace(/[^0-9.,]/g, ""))}
+            onKeyDown={(e) => e.key === "Enter" && spend()}
+            aria-invalid={value !== "" && !valid ? true : undefined}
+            autoFocus
+          />
+        </span>
+      </label>
+      <div className={s.chips}>
+        <button type="button" className={s.chip} onClick={() => setValue((cents / 100).toFixed(2).replace(".", ","))}>
+          {t("all", { amount: euros(cents, locale) })}
+        </button>
+      </div>
+      {value !== "" && amount > cents && <p className={s.error}>{t("moreThanBalance", { amount: euros(cents, locale) })}</p>}
+      {error && <p className={s.error}>{error}</p>}
+      <button type="button" className={s.primary} onClick={spend} disabled={!valid || busy}>
+        {valid ? t("spend", { amount: euros(amount, locale) }) : t("spendEmpty")}
+      </button>
+      <button type="button" className={s.ghost} onClick={onBack}>
+        {t("back")}
+      </button>
     </>
   );
 }

@@ -26,6 +26,7 @@
 .body {
   display: grid;
   align-content: start;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   width: 100%;
   max-width: var(--pass-width);
@@ -236,4 +237,49 @@
   background: var(--night-ink);
   color: var(--night);
   font-weight: var(--weight-strong);
+}
+
+.amount {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.amountRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline) solid var(--night-line);
+  border-radius: var(--radius-md);
+  background: var(--night-2);
+}
+
+.amountRow:focus-within {
+  border-color: var(--night-ink);
+}
+
+.currency {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--night-ink-2);
+}
+
+.amountInput {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--night-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.amountInput::placeholder {
+  color: var(--night-ink-2);
+  opacity: 0.5;
 }

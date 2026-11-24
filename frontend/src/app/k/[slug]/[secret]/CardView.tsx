@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import { Pass, passStyles } from "@/components/Pass";
 import { Button, LinkButton, Notice } from "@/components/ui";
 import { api, type CardData } from "@/lib/api";
+import { euros } from "@/lib/money";
 import { useErrorText } from "@/lib/useErrorText";
 
 import styles from "../../../public.module.css";
@@ -35,6 +36,7 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2,
 
 export function CardView({ slug, secret }: { slug: string; secret: string }) {
   const t = useTranslations("card");
+  const locale = useLocale();
   const errorText = useErrorText();
   const [data, setData] = useState<CardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +124,7 @@ export function CardView({ slug, secret }: { slug: string; secret: string }) {
           fresh={fresh}
           scanToken={active ? undefined : data.scan_token}
           scanHint={t("scanHint")}
+          balance={data.memberships.balance.cents > 0 ? euros(data.memberships.balance.cents, locale) : undefined}
         >
           {reward && (
             <div className={passStyles.reward}>
@@ -173,7 +176,14 @@ export function CardView({ slug, secret }: { slug: string; secret: string }) {
             <p className={styles.muted}>{t("walletNote")}</p>
           </div>
         )}
-        <Memberships path={path} plans={data.memberships.plans} subscriptions={data.memberships.subscriptions} onChange={load} />
+        <Memberships
+          path={path}
+          plans={data.memberships.plans}
+          subscriptions={data.memberships.subscriptions}
+          balance={data.memberships.balance}
+          history={data.memberships.balance_history}
+          onChange={load}
+        />
         <Waitlist path={path} current={data.waitlist} hasEmail={data.has_email} services={data.services} onChange={load} />
         <Messages path={path} business={data.business.name} on={data.marketing} onChange={load} />
         <p className={styles.muted}>{t("saveTip")}</p>

@@ -515,6 +515,7 @@ class WebhookDelivery(Base):
 class PlanKind(enum.StrEnum):
     MEMBERSHIP = "membership"
     BUNDLE = "bundle"
+    CREDIT = "credit"  # prepaid balance in euros, possibly worth more than its price
 
 
 class Plan(Base):
@@ -532,6 +533,8 @@ class Plan(Base):
     name: Mapped[str] = mapped_column(String(80), nullable=False)
     price_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     credits: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    # Credit plans only: what the customer can spend (price_cents is what they pay).
+    value_cents: Mapped[int | None] = mapped_column(Integer)
     validity_days: Mapped[int | None] = mapped_column(SmallInteger)
     cancel_notice_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
     cooling_off_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=14)
@@ -544,7 +547,19 @@ class Plan(Base):
 
     __table_args__ = (
         CheckConstraint("price_cents between 100 and 100000", name="price_range"),
-        CheckConstraint("credits between 1 and 100", name="credits_range"),
+        CheckConstraint(
+            "(kind::text = 'credit' and credits = 0) or "
+            "(kind::text <> 'credit' and credits between 1 and 100)",
+            name="credits_range",
+        ),
+        CheckConstraint(
+            "(kind::text = 'credit') = (value_cents is not null) and "
+            "(value_cents is null or value_cents between price_cents and price_cents * 2)",
+            name="credit_value",
+        ),
+        CheckConstraint(
+            "kind::text <> 'credit' or validity_days between 365 and 1095", name="credit_validity"
+        ),
         # Renewing memberships may be cancelled monthly: notice of at most a month.
         CheckConstraint("cancel_notice_days between 0 and 31", name="notice_at_most_month"),
         CheckConstraint(
@@ -637,6 +652,50 @@ class CreditEvent(Base):
     created_at: Mapped[datetime] = _created()
 
 
+class BalanceKind(enum.StrEnum):
+    TOPUP = "topup"
+    SPEND = "spend"
+    REVERSAL = "reversal"
+    EXPIRE = "expire"
+
+
+class BalanceEvent(Base):
+    """Euro balance ledger for credit plans, append-only like ``credit_events``.
+
+    ``amount_cents`` is signed: top-up and reversal add, spend and expiry take
+    away. A reversal points at the spend it undoes and can do so only once.
+    """
+
+    __tablename__ = "balance_events"
+
+    id: Mapped[uuid.UUID] = _pk()
+    business_id: Mapped[uuid.UUID] = _tenant()
+    subscription_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("subscriptions.id"), nullable=False, index=True
+    )
+    kind: Mapped[BalanceKind] = mapped_column(_enum(BalanceKind, "balance_kind"), nullable=False)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(160), nullable=False, unique=True)
+    reverses_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("balance_events.id"), unique=True
+    )
+    staff_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("staff_members.id"))
+    note: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = _created()
+
+    __table_args__ = (
+        CheckConstraint(
+            "(kind in ('topup', 'reversal') and amount_cents > 0) or "
+            "(kind in ('spend', 'expire') and amount_cents < 0)",
+            name="balance_sign",
+        ),
+        CheckConstraint(
+            "(kind = 'reversal') = (reverses_id is not null)", name="reversal_points_back"
+        ),
+        CheckConstraint("kind <> 'reversal' or note is not null", name="reversal_has_reason"),
+    )
+
+
 class ProviderConnection(Base):
     """A business's own payment account (Mollie Connect). Tokens stored encrypted."""
 
@@ -713,4 +772,4 @@ class AuditEntry(Base):
 
 
 TENANT_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name != "businesses"]
-APPEND_ONLY_TABLES = ["ledger_events", "audit_log", "credit_events"]
+APPEND_ONLY_TABLES = ["ledger_events", "audit_log", "credit_events", "balance_events"]
