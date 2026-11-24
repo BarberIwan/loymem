@@ -37,7 +37,14 @@ export function Field({ label, optional, help, error, ...input }: FieldProps) {
       <label className={s.label} htmlFor={id}>
         {label} {optional && <span className={s.labelMuted}>({optional})</span>}
       </label>
-      <input id={id} className={s.input} aria-invalid={error ? true : undefined} aria-describedby={hint} {...input} />
+      <input
+        id={id}
+        className={s.input}
+        inputMode={input.type === "number" ? "numeric" : undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={hint}
+        {...input}
+      />
       {error ? (
         <p id={hint} className={s.error} role="alert">
           {error}

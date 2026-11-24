@@ -82,7 +82,7 @@
   padding: 0 var(--space-4);
   border: var(--hairline) solid var(--line-strong);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background-color: var(--surface);
   transition: border-color var(--dur-quick) var(--ease-out);
 }
 
