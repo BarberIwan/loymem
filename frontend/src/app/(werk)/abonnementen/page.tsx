@@ -13,7 +13,14 @@ import shell from "../shell.module.css";
 import s from "../vandaag/vandaag.module.css";
 import w from "../werk.module.css";
 
-type Data = { plans: (PlanTerms & { active: boolean })[]; connected: boolean; selling_enabled: boolean };
+type PolicyOptions = {
+  unused_membership: Record<string, string>;
+  no_show: Record<string, string>;
+  unused_bundle: string;
+  unused_credit: string;
+  pause: string;
+};
+type Data = { plans: (PlanTerms & { active: boolean })[]; connected: boolean; selling_enabled: boolean; policy_options: PolicyOptions };
 
 /** Above this the bonus is generous enough that the owner should see what it costs. */
 const BONUS_WATCH = 30;
@@ -28,9 +35,8 @@ const EMPTY = {
   validity_days: 180,
   cancel_notice_days: 0,
   cooling_off_days: 14,
-  unused_policy: "",
-  no_show_policy: "",
-  pause_policy: "",
+  unused_rule: "expire_period",
+  no_show_rule: "no_show_counts",
 };
 
 export default function PlansPage() {
@@ -81,7 +87,8 @@ export default function PlansPage() {
           value_cents: isCredit ? cents(value) : null,
           credits: isCredit ? 0 : f.credits,
           validity_days: f.kind === "membership" ? null : f.validity_days,
-          ...(isCredit ? { no_show_policy: "", pause_policy: "" } : {}),
+          unused_rule: f.kind === "membership" ? f.unused_rule : null,
+          no_show_rule: isCredit ? null : f.no_show_rule,
         },
       });
       setF(EMPTY);
@@ -179,27 +186,79 @@ export default function PlansPage() {
             </div>
           )}
           <Field label={t("coolingOff")} type="number" min={14} max={60} value={f.cooling_off_days} onChange={set("cooling_off_days")} />
-          <p className={uiStyles.label}>{t("termsHeading")}</p>
-          {(isCredit ? (["unused_policy"] as const) : (["unused_policy", "no_show_policy", "pause_policy"] as const)).map((k) => (
-            <label key={k} className={uiStyles.field}>
-              <span className={uiStyles.label}>{t(k === "unused_policy" ? (isCredit ? "unusedCredit" : "unused") : k === "no_show_policy" ? "noShow" : "pause")}</span>
-              <textarea
-                className={s.textarea}
-                value={f[k]}
-                onChange={set(k)}
-                required
-                minLength={10}
-                maxLength={600}
-                placeholder={t(k === "unused_policy" ? (isCredit ? "unusedCreditPh" : "unusedPh") : k === "no_show_policy" ? "noShowPh" : "pausePh")}
-              />
-            </label>
-          ))}
+          {data && <Terms kind={f.kind} options={data.policy_options} unused={f.unused_rule} noShow={f.no_show_rule} onChange={(k, v) => setF({ ...f, [k]: v })} />}
           <p className={w.muted}>{t("versionNote")}</p>
           <div className={w.actions}>
             <Button type="submit">{t("save")}</Button>
           </div>
         </form>
       </Panel>
+    </div>
+  );
+}
+
+/** The terms a customer will read, chosen from fixed sentences that a lawyer checked once. */
+function Terms({ kind, options, unused, noShow, onChange }: {
+  kind: string;
+  options: PolicyOptions;
+  unused: string;
+  noShow: string;
+  onChange: (key: "unused_rule" | "no_show_rule", value: string) => void;
+}) {
+  const t = useTranslations("plans");
+  return (
+    <div className={w.stack}>
+      <div>
+        <p className={uiStyles.label}>{t("termsHeading")}</p>
+        <p className={w.muted}>{t("termsLead")}</p>
+      </div>
+      {kind === "membership" ? (
+        <Choice legend={t("unused")} name="unused_rule" value={unused} options={options.unused_membership} labels={(k) => t(`unusedOpt.${k}`)} onChange={(v) => onChange("unused_rule", v)} />
+      ) : (
+        <Fixed label={kind === "credit" ? t("unusedCredit") : t("unused")} text={kind === "credit" ? options.unused_credit : options.unused_bundle} />
+      )}
+      {kind !== "credit" && (
+        <>
+          <Choice legend={t("noShow")} name="no_show_rule" value={noShow} options={options.no_show} labels={(k) => t(`noShowOpt.${k}`)} onChange={(v) => onChange("no_show_rule", v)} />
+          <Fixed label={t("pause")} text={options.pause} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function Choice({ legend, name, value, options, labels, onChange }: {
+  legend: string;
+  name: string;
+  value: string;
+  options: Record<string, string>;
+  labels: (key: string) => string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <fieldset className={w.choices}>
+      <legend className={uiStyles.label}>{legend}</legend>
+      {Object.entries(options).map(([key, sentence]) => (
+        <label key={key} className={w.choice}>
+          <input type="radio" name={name} value={key} checked={value === key} onChange={() => onChange(key)} />
+          <span className={w.choiceBody}>
+            <span className={w.choiceTitle}>{labels(key)}</span>
+            <span className={w.choiceText}>{sentence}</span>
+          </span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function Fixed({ label, text }: { label: string; text: string }) {
+  const t = useTranslations("plans");
+  return (
+    <div className={w.fixed}>
+      <span className={uiStyles.label}>
+        {label} <span className={uiStyles.labelMuted}>({t("fixed")})</span>
+      </span>
+      <span className={w.choiceText}>{text}</span>
     </div>
   );
 }

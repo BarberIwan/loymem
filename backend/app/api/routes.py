@@ -62,6 +62,7 @@ from app.services import (
     memberships,
     onboarding,
     owner,
+    policies,
     slots,
     wallet_live,
     webhooks,
@@ -708,10 +709,9 @@ class PlanIn(BaseModel):
     validity_days: int | None = Field(default=None, ge=30, le=1095)
     cancel_notice_days: int = Field(default=0, ge=0, le=31)
     cooling_off_days: int = Field(default=14, ge=14, le=60)
-    unused_policy: str = Field(min_length=10, max_length=600)
-    # Not asked for a balance: it has no visits to miss or pause.
-    no_show_policy: str = Field(default="", max_length=600)
-    pause_policy: str = Field(default="", max_length=600)
+    # Chosen from a fixed list (services/policies.py); the texts follow from them.
+    unused_rule: str | None = Field(default=None, max_length=30)
+    no_show_rule: str | None = Field(default=None, max_length=30)
     active: bool = True
 
     @model_validator(mode="after")
@@ -724,14 +724,20 @@ class PlanIn(BaseModel):
             if self.validity_days is None or self.validity_days < 365:
                 raise ValueError("credit_valid_at_least_a_year")
             self.credits = 0
-            self.no_show_policy = self.pause_policy = ""
+            self.unused_rule = self.no_show_rule = None
         else:
             if self.credits < 1:
                 raise ValueError("credits_required")
-            if len(self.no_show_policy) < 10 or len(self.pause_policy) < 10:
-                raise ValueError("policies_required")
             self.value_cents = None
+            if self.kind != PlanKind.MEMBERSHIP:
+                self.unused_rule = None
+        policies.texts(self.kind, self.unused_rule, self.no_show_rule)  # raises on unknown
         return self
+
+    def to_plan(self) -> dict[str, object]:
+        data = self.model_dump()
+        data.update(policies.texts(self.kind, self.unused_rule, self.no_show_rule))
+        return data
 
 
 @api.get("/plans")
@@ -743,17 +749,24 @@ def list_plans(ctx: Owner, db: Db) -> dict[str, object]:
         "plans": [memberships.plan_terms(p) for p in plans],
         "connected": memberships.is_connected(db, ctx.business.id),
         "selling_enabled": get_settings().memberships_enabled,
+        "policy_options": {
+            "unused_membership": policies.UNUSED_MEMBERSHIP,
+            "no_show": policies.NO_SHOW,
+            "unused_bundle": policies.UNUSED_BUNDLE,
+            "unused_credit": policies.UNUSED_CREDIT,
+            "pause": policies.PAUSE,
+        },
     }
 
 
 @api.post("/plans", status_code=201)
 def create_plan(body: PlanIn, ctx: Owner, db: Db) -> dict[str, object]:
-    return memberships.plan_terms(memberships.save_plan(db, ctx, None, body.model_dump()))
+    return memberships.plan_terms(memberships.save_plan(db, ctx, None, body.to_plan()))
 
 
 @api.put("/plans/{plan_id}")
 def update_plan(plan_id: uuid.UUID, body: PlanIn, ctx: Owner, db: Db) -> dict[str, object]:
-    return memberships.plan_terms(memberships.save_plan(db, ctx, plan_id, body.model_dump()))
+    return memberships.plan_terms(memberships.save_plan(db, ctx, plan_id, body.to_plan()))
 
 
 def _redirect_uri() -> str:

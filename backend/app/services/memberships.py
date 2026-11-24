@@ -48,6 +48,8 @@ TERM_FIELDS = (
     "price_cents",
     "credits",
     "value_cents",
+    "unused_rule",
+    "no_show_rule",
     "validity_days",
     "cancel_notice_days",
     "cooling_off_days",
@@ -98,6 +100,8 @@ def plan_terms(plan: Plan) -> dict[str, object]:
         "value_cents": plan.value_cents,
         "bonus_percent": bonus_percent(plan.price_cents, plan.value_cents),
         "validity_days": plan.validity_days,
+        "unused_rule": plan.unused_rule,
+        "no_show_rule": plan.no_show_rule,
         "cancel_notice_days": plan.cancel_notice_days,
         "cooling_off_days": plan.cooling_off_days,
         "unused_policy": plan.unused_policy,
@@ -549,8 +553,12 @@ def daily(db: Session, business: Business, now: datetime | None = None) -> dict[
             ended += 1
             continue
         left = available(db, sub.id)
-        if left > 0:
-            _event(db, sub, CreditKind.EXPIRE, -left, f"expire:{sub.id}:{sub.period_end}")
+        # Rolling over keeps at most one period's worth; visits are used oldest
+        # first, so what carries is always the newest, and older ones expire.
+        renewing = sub.renews and plan.active and bool(sub.provider_mandate_id)
+        carry = min(left, plan.credits) if renewing and plan.unused_rule == "roll_one_period" else 0
+        if left - carry > 0:
+            _event(db, sub, CreditKind.EXPIRE, -(left - carry), f"expire:{sub.id}:{sub.period_end}")
         if sub.renews and plan.active and sub.provider_mandate_id:
             key = f"renew:{sub.id}:{sub.period_end}"
             if db.scalar(

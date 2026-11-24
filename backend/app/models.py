@@ -538,6 +538,9 @@ class Plan(Base):
     validity_days: Mapped[int | None] = mapped_column(SmallInteger)
     cancel_notice_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
     cooling_off_days: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=14)
+    # The chosen options (services/policies.py); the texts below are what they said then.
+    unused_rule: Mapped[str | None] = mapped_column(String(30))
+    no_show_rule: Mapped[str | None] = mapped_column(String(30))
     unused_policy: Mapped[str] = mapped_column(Text, nullable=False)
     no_show_policy: Mapped[str] = mapped_column(Text, nullable=False)
     pause_policy: Mapped[str] = mapped_column(Text, nullable=False)
@@ -559,6 +562,18 @@ class Plan(Base):
         ),
         CheckConstraint(
             "kind::text <> 'credit' or validity_days between 365 and 1095", name="credit_validity"
+        ),
+        CheckConstraint(
+            "unused_rule is null or unused_rule in ('expire_period', 'roll_one_period')",
+            name="unused_rule_known",
+        ),
+        CheckConstraint(
+            "no_show_rule is null or no_show_rule in "
+            "('free', 'no_show_counts', 'late_24h', 'late_24h_first_free')",
+            name="no_show_rule_known",
+        ),
+        CheckConstraint(
+            "unused_rule is null or kind::text = 'membership'", name="roll_only_membership"
         ),
         # Renewing memberships may be cancelled monthly: notice of at most a month.
         CheckConstraint("cancel_notice_days between 0 and 31", name="notice_at_most_month"),
