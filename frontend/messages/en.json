@@ -64,7 +64,10 @@
     "balance_too_low": "There is not enough balance.",
     "amount_out_of_range": "This amount is not possible.",
     "undo_not_allowed": "Only a manager or the owner can undo this now.",
-    "spend_not_found": "This entry does not exist."
+    "spend_not_found": "This entry does not exist.",
+    "nothing_to_refund": "There is nothing left to refund here.",
+    "refund_amount_out_of_range": "That amount is not possible: at most what was paid for this period.",
+    "unknown_reason": "Choose a reason."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -429,7 +432,9 @@
     "creditUse": "Spending",
     "creditUseBody": "You can spend {value} at the business. Each treatment is taken from your balance and you see here what is left.",
     "chargeCredit": "You pay {price} once on the payment page. Then {value} is on your card.",
-    "titleBalance": "Balance"
+    "titleBalance": "Balance",
+    "refund": "Money back",
+    "lineRefund": "Refunded"
   },
   "plans": {
     "title": "Memberships",
@@ -478,7 +483,29 @@
       "no_show_counts": "Only not showing up without cancelling",
       "late_24h": "Cancel up to 24 hours ahead",
       "late_24h_first_free": "24 hours ahead, first time a year free"
-    }
+    },
+    "refund": "Money back",
+    "running": "Running purchases",
+    "runningEmpty": "No one has bought a membership, bundle or balance yet.",
+    "refundOpen": "Refund",
+    "unusedVisits": "{left} of {of} visits unused",
+    "unusedBalance": "{left} of {of} balance unused",
+    "refundBasis": "Paid {paid}, {unused}.",
+    "withinCoolingOff": "Within the cooling-off period.",
+    "refundSuggested": "Suggested, in proportion: {amount}",
+    "refundAmount": "Amount back (euro)",
+    "refundMax": "At most {amount}, what was paid for this period.",
+    "refundReason": "Reason",
+    "reason": {
+      "cooling_off": "Cooling-off",
+      "business_stops": "Business stops",
+      "goodwill": "Goodwill",
+      "other": "Other"
+    },
+    "refundConfirm": "{amount} goes back to {name}, by the same payment method. The purchase ends and what is unused leaves the card. This cannot be undone.",
+    "refundYes": "Refund {amount}",
+    "refundNo": "Do not refund",
+    "refundInvalid": "Enter a valid amount"
   },
   "campaigns": {
     "title": "Campaigns",

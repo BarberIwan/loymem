@@ -239,3 +239,19 @@
   color: var(--ink-3);
   text-decoration: line-through;
 }
+
+.linkButton {
+  min-height: var(--hit);
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: var(--space-1);
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  color: var(--ink);
+}

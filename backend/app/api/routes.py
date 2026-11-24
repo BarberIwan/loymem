@@ -63,6 +63,7 @@ from app.services import (
     onboarding,
     owner,
     policies,
+    refunds,
     slots,
     wallet_live,
     webhooks,
@@ -755,6 +756,7 @@ def list_plans(ctx: Owner, db: Db) -> dict[str, object]:
             "unused_bundle": policies.UNUSED_BUNDLE,
             "unused_credit": policies.UNUSED_CREDIT,
             "pause": policies.PAUSE,
+            "refund": policies.REFUND,
         },
     }
 
@@ -831,6 +833,23 @@ class CreditUseIn(BaseModel):
 @api.post("/credits/use")
 def use_credit(body: CreditUseIn, ctx: Staff, db: Db) -> dict[str, object]:
     return memberships.use_at_counter(db, ctx, body.customer_id, body.request_id)
+
+
+@api.get("/subscriptions")
+def list_subscriptions(ctx: Owner, db: Db) -> list[dict[str, object]]:
+    return refunds.overview(db, ctx)
+
+
+class RefundIn(BaseModel):
+    amount_cents: int = Field(ge=1, le=100_000)
+    reason: str = Field(max_length=40)
+
+
+@api.post("/subscriptions/{subscription_id}/refund")
+def refund_subscription(
+    subscription_id: uuid.UUID, body: RefundIn, ctx: Owner, db: Db
+) -> dict[str, object]:
+    return refunds.refund(db, ctx, subscription_id, body.amount_cents, body.reason)
 
 
 class SpendIn(BaseModel):
