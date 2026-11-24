@@ -53,7 +53,7 @@ export function StaffPanel() {
           </div>
         ))}
         <form
-          className={s.empty}
+          className={s.form}
           onSubmit={(e) => {
             e.preventDefault();
             run(async () => {

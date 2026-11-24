@@ -220,6 +220,21 @@
   padding-left: var(--space-5);
 }
 
+.steps ::marker {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+}
+
+.form > button {
+  justify-self: start;
+}
+
 .stepDone {
   color: var(--ink-3);
   text-decoration: line-through;

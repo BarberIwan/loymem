@@ -128,7 +128,7 @@
 
 .serviceRow {
   display: grid;
-  grid-template-columns: 1fr var(--days-col) auto;
+  grid-template-columns: minmax(0, 1fr) var(--days-col) auto;
   gap: var(--space-3);
   align-items: end;
 }
@@ -212,5 +212,15 @@
   .pair,
   .triple {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .serviceRow {
+    grid-template-columns: minmax(0, 1fr) var(--days-col);
+  }
+  .serviceRow > button {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 }
