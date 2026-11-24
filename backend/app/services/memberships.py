@@ -40,13 +40,14 @@ from app.models import (
     SubscriptionStatus,
     utcnow,
 )
-from app.services import Conflict, DomainError, Forbidden, NotFound, audit
+from app.services import Conflict, DomainError, Forbidden, NotFound, audit, balance
 from app.services.cards import StaffContext
 
 PERIOD = timedelta(days=30)
 TERM_FIELDS = (
     "price_cents",
     "credits",
+    "value_cents",
     "validity_days",
     "cancel_notice_days",
     "cooling_off_days",
@@ -80,6 +81,13 @@ def _fernet() -> Fernet:
 # --- Plans --------------------------------------------------------------------
 
 
+def bonus_percent(price_cents: int, value_cents: int | None) -> int | None:
+    """How much more the balance is worth than it costs, rounded down."""
+    if not value_cents:
+        return None
+    return (value_cents - price_cents) * 100 // price_cents
+
+
 def plan_terms(plan: Plan) -> dict[str, object]:
     return {
         "id": str(plan.id),
@@ -87,6 +95,8 @@ def plan_terms(plan: Plan) -> dict[str, object]:
         "name": plan.name,
         "price_cents": plan.price_cents,
         "credits": plan.credits,
+        "value_cents": plan.value_cents,
+        "bonus_percent": bonus_percent(plan.price_cents, plan.value_cents),
         "validity_days": plan.validity_days,
         "cancel_notice_days": plan.cancel_notice_days,
         "cooling_off_days": plan.cooling_off_days,
@@ -308,7 +318,10 @@ def handle_webhook(db: Session, business: Business, payment_id: str) -> str:
         sub.status = SubscriptionStatus.ACTIVE
     sub.provider_customer_id = info.customer_id or sub.provider_customer_id
     sub.provider_mandate_id = info.mandate_id or sub.provider_mandate_id
-    _event(db, sub, CreditKind.GRANT, plan.credits, f"grant:{payment.id}")
+    if plan.kind == PlanKind.CREDIT:
+        balance.topup(db, sub, plan, payment.id)
+    else:
+        _event(db, sub, CreditKind.GRANT, plan.credits, f"grant:{payment.id}")
     audit.record(db, business.id, "payment.paid", "subscription", sub.id)
     return "paid"
 
@@ -387,14 +400,16 @@ def _usable(db: Session, business_id: uuid.UUID, customer_id: uuid.UUID) -> Subs
     now = utcnow()
     sub = db.scalar(
         select(Subscription)
+        .join(Plan, Plan.id == Subscription.plan_id)
         .where(
             Subscription.business_id == business_id,
             Subscription.customer_id == customer_id,
             Subscription.status == SubscriptionStatus.ACTIVE,
             Subscription.period_end > now,
+            Plan.kind != PlanKind.CREDIT,  # a euro balance is spent with balance.spend
         )
         .order_by(Subscription.period_end)
-        .with_for_update()
+        .with_for_update(of=Subscription)
     )
     if sub is None:
         raise NotFound("no_active_membership")
@@ -475,6 +490,7 @@ def customer_view(db: Session, business: Business, customer: Customer) -> dict[s
     for s in subs:
         plan = db.get(Plan, s.plan_id)
         assert plan is not None
+        is_credit = plan.kind == PlanKind.CREDIT
         mine.append(
             {
                 "id": str(s.id),
@@ -483,11 +499,17 @@ def customer_view(db: Session, business: Business, customer: Customer) -> dict[s
                 "status": s.status.value,
                 "renews": s.renews,
                 "period_end": s.period_end.isoformat() if s.period_end else None,
-                "credits": available(db, s.id),
+                "credits": None if is_credit else available(db, s.id),
+                "balance_cents": balance.of_subscription(db, s.id) if is_credit else None,
             }
         )
     on_sale = get_settings().memberships_enabled and is_connected(db, business.id)
-    return {"subscriptions": mine, "plans": [plan_terms(p) for p in plans] if on_sale else []}
+    return {
+        "subscriptions": mine,
+        "balance": balance.summary(db, business.id, customer.id),
+        "balance_history": balance.history(db, business.id, customer.id, limit=5),
+        "plans": [plan_terms(p) for p in plans] if on_sale else [],
+    }
 
 
 def staff_view(
@@ -519,11 +541,16 @@ def daily(db: Session, business: Business, now: datetime | None = None) -> dict[
         .with_for_update(skip_locked=True)
     ).all()
     for sub in subs:
+        plan = db.get(Plan, sub.plan_id)
+        assert plan is not None
+        if plan.kind == PlanKind.CREDIT:
+            balance.expire(db, sub)
+            sub.status = SubscriptionStatus.ENDED
+            ended += 1
+            continue
         left = available(db, sub.id)
         if left > 0:
             _event(db, sub, CreditKind.EXPIRE, -left, f"expire:{sub.id}:{sub.period_end}")
-        plan = db.get(Plan, sub.plan_id)
-        assert plan is not None
         if sub.renews and plan.active and sub.provider_mandate_id:
             key = f"renew:{sub.id}:{sub.period_end}"
             if db.scalar(

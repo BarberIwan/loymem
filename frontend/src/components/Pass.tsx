@@ -17,12 +17,14 @@ type Props = {
   fresh?: number;
   scanToken?: string;
   scanHint?: string;
+  /** Prepaid euro balance, already formatted; shown only when there is one. */
+  balance?: string;
   children?: ReactNode;
 };
 
 /** The customer card. Brand colour in front, text colour chosen for contrast by the server. */
 export function Pass({ business, programName, palette, stamps, total, fresh = 0, scanToken,
-  scanHint, children }: Props) {
+  scanHint, balance, children }: Props) {
   const t = useTranslations("card");
   const cols = total <= 6 ? total : total <= 12 ? Math.ceil(total / 2) : 6;
   const vars = { "--pass-bg": palette.background, "--pass-fg": palette.text, "--cols": cols } as CSSProperties;
@@ -46,6 +48,12 @@ export function Pass({ business, programName, palette, stamps, total, fresh = 0,
           />
         ))}
       </ol>
+      {balance && (
+        <div className={styles.balance}>
+          <span className={styles.label}>{t("balance")}</span>
+          <span className={styles.balanceAmount}>{balance}</span>
+        </div>
+      )}
       {children}
       {scanToken && (
         <footer className={styles.foot}>

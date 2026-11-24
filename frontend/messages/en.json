@@ -50,7 +50,7 @@
     "payments_not_connected": "The business has not connected a payment account yet.",
     "payment_provider_error": "Payment does not work right now. Try again shortly.",
     "no_active_membership": "No active membership.",
-    "no_credits_left": "No credits left.",
+    "no_credits_left": "No visits left.",
     "subscription_not_found": "This membership does not exist.",
     "campaign_already_sent": "This campaign was already sent.",
     "unknown_audience": "Choose who the campaign is for.",
@@ -60,7 +60,11 @@
     "email_in_use": "This email address already has an account.",
     "cannot_change_self": "You cannot turn yourself off.",
     "staff_not_found": "This staff member does not exist.",
-    "one_owner": "There is one owner per business."
+    "one_owner": "There is one owner per business.",
+    "balance_too_low": "There is not enough balance.",
+    "amount_out_of_range": "This amount is not possible.",
+    "undo_not_allowed": "Only a manager or the owner can undo this now.",
+    "spend_not_found": "This entry does not exist."
   },
   "signup": {
     "lead": "Collect at {business}. After {count} visits you get {reward}.",
@@ -93,7 +97,8 @@
     "codeLeft": "{time} left.",
     "apple": "Add to Apple Wallet",
     "google": "Add to Google Wallet",
-    "walletNote": "The pass in your wallet shows your stamps as of now. The card here is always up to date."
+    "walletNote": "The pass in your wallet shows your stamps as of now. The card here is always up to date.",
+    "balance": "Balance"
   },
   "lost": {
     "title": "A new link for your card",
@@ -147,9 +152,27 @@
     "tabRedeem": "Redeem",
     "offerClaimed": "Claimed a free slot: {benefit}",
     "offerApplied": "Benefit applied: {benefit}",
-    "credits": "{plan}: {count} left",
-    "useCredit": "Use a visit credit",
-    "creditUsed": "Credit used. {count} left."
+    "credits": "{plan}: {count, plural, one {# visit} other {# visits}} left",
+    "useCredit": "Use a visit",
+    "creditUsed": "Visit used. {count} left.",
+    "balance": "Balance {amount}",
+    "payWithBalance": "Pay with balance",
+    "balanceOf": "{name}'s balance",
+    "amount": "Amount",
+    "amountPlaceholder": "0.00",
+    "all": "All, {amount}",
+    "moreThanBalance": "The balance is {amount}. Take the rest the usual way.",
+    "spend": "Take {amount}",
+    "spendEmpty": "Enter an amount",
+    "spent": "{amount} taken",
+    "balanceLeft": "{name} has {amount} left.",
+    "spendUndone": "Reversed",
+    "undo": "Undo",
+    "undoWhy": "Why undo",
+    "undoWrongAmount": "Wrong amount",
+    "undoWrongCustomer": "Wrong customer",
+    "undoOther": "Something else",
+    "back": "Back"
   },
   "overview": {
     "title": "Overview",
@@ -391,7 +414,22 @@
     "keep": "No, keep it",
     "charge": "You pay {price} now on the payment page. After that we charge every month on the same day until you cancel. After cancelling you can still use it until the end of the paid month.",
     "chargeOnce": "You pay {price} once now on the payment page.",
-    "acceptFirst": "First tick that you have read the terms."
+    "acceptFirst": "First tick that you have read the terms.",
+    "balanceTitle": "Your balance",
+    "balanceUntil": "To spend until {date}",
+    "balancePartUntil": "{amount} to spend until {date}",
+    "historyTitle": "Latest entries",
+    "lineTopup": "Topped up",
+    "lineSpend": "Spent",
+    "lineUndone": "Spent, reversed",
+    "lineExpire": "Expired",
+    "creditPayGet": "Pay {price}, spend {value}",
+    "bonus": "+{percent}%",
+    "creditValid": "{days} days to spend, on any treatment.",
+    "creditUse": "Spending",
+    "creditUseBody": "You can spend {value} at the business. Each treatment is taken from your balance and you see here what is left.",
+    "chargeCredit": "You pay {price} once on the payment page. Then {value} is on your card.",
+    "titleBalance": "Balance"
   },
   "plans": {
     "title": "Memberships",
@@ -422,7 +460,17 @@
     "noShowPh": "For example: whoever does not show without cancelling loses that haircut.",
     "pausePh": "For example: pausing is possible one month a year.",
     "summaryMonth": "{price} a month · {count, plural, one {# visit} other {# visits}} · terms version {version}",
-    "summaryOnce": "{price} once · {count, plural, one {# visit} other {# visits}} · terms version {version}"
+    "summaryOnce": "{price} once · {count, plural, one {# visit} other {# visits}} · terms version {version}",
+    "kindCredit": "Balance (prepaid)",
+    "pays": "Customer pays (euro)",
+    "spends": "Customer can spend (euro)",
+    "bonusFine": "{percent}% extra. Every euro spent from this balance brings you {perEuro}. The money is in your account straight away.",
+    "bonusWatch": "{percent}% extra is generous. Every euro spent from this balance then brings you {perEuro}. Usual is 10 to 25%.",
+    "bonusTooHigh": "A balance can be worth at most double what the customer pays.",
+    "valueBelowPrice": "The balance must be worth at least what the customer pays.",
+    "unusedCredit": "What happens to unspent balance",
+    "unusedCreditPh": "For example: balance not spent within a year expires.",
+    "summaryCredit": "Pay {price}, spend {value} · {percent}% extra · valid {days} days · terms version {version}"
   },
   "campaigns": {
     "title": "Campaigns",

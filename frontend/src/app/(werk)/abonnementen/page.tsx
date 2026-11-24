@@ -15,10 +15,15 @@ import w from "../werk.module.css";
 
 type Data = { plans: (PlanTerms & { active: boolean })[]; connected: boolean; selling_enabled: boolean };
 
+/** Above this the bonus is generous enough that the owner should see what it costs. */
+const BONUS_WATCH = 30;
+const cents = (v: string) => Math.round(Number(v.replace(/\s/g, "").replace(",", ".")) * 100);
+
 const EMPTY = {
   kind: "membership",
   name: "",
   price: "35",
+  value: "",
   credits: 2,
   validity_days: 180,
   cancel_notice_days: 0,
@@ -41,8 +46,19 @@ export default function PlansPage() {
   }, [errorText]);
   useEffect(load, [load]);
 
-  const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setF({ ...f, [k]: e.target.type === "number" ? Number(e.target.value) : e.target.value });
+  const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const next = { ...f, [k]: e.target.type === "number" ? Number(e.target.value) : e.target.value };
+    if (k === "kind" && e.target.value === "credit") {
+      next.validity_days = Math.max(365, f.validity_days);
+      if (!f.value) next.value = "60";
+      if (f.price === "35") next.price = "50";
+    }
+    setF(next);
+  };
+  const isCredit = f.kind === "credit";
+  const priceCents = cents(f.price);
+  const valueCents = cents(f.value);
+  const bonus = isCredit && priceCents > 0 && valueCents >= priceCents ? Math.floor(((valueCents - priceCents) * 100) / priceCents) : null;
 
   async function connect() {
     try {
@@ -56,10 +72,17 @@ export default function PlansPage() {
   async function create(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const { price, ...rest } = f;
+      const { price, value, ...rest } = f;
       await api("/plans", {
         method: "POST",
-        json: { ...rest, price_cents: Math.round(Number(price.replace(",", ".")) * 100), validity_days: f.kind === "bundle" ? f.validity_days : null },
+        json: {
+          ...rest,
+          price_cents: cents(price),
+          value_cents: isCredit ? cents(value) : null,
+          credits: isCredit ? 0 : f.credits,
+          validity_days: f.kind === "membership" ? null : f.validity_days,
+          ...(isCredit ? { no_show_policy: "", pause_policy: "" } : {}),
+        },
       });
       setF(EMPTY);
       setError(null);
@@ -94,10 +117,18 @@ export default function PlansPage() {
           <ul className={s.list}>
             {data.plans.map((p) => (
               <li key={p.id} className={s.card}>
-                <span className={s.kind}>{p.kind === "membership" ? t("kindMembership") : t("kindBundle")}</span>
+                <span className={s.kind}>{p.kind === "membership" ? t("kindMembership") : p.kind === "credit" ? t("kindCredit") : t("kindBundle")}</span>
                 <span className={s.name}>{p.name}</span>
                 <p className={s.reason}>
-                  {t(p.kind === "membership" ? "summaryMonth" : "summaryOnce", { price: euros(p.price_cents, locale), count: p.credits, version: p.terms_version })}
+                  {p.kind === "credit"
+                    ? t("summaryCredit", {
+                        price: euros(p.price_cents, locale),
+                        value: euros(p.value_cents ?? 0, locale),
+                        percent: p.bonus_percent ?? 0,
+                        days: p.validity_days ?? 365,
+                        version: p.terms_version,
+                      })
+                    : t(p.kind === "membership" ? "summaryMonth" : "summaryOnce", { price: euros(p.price_cents, locale), count: p.credits, version: p.terms_version })}
                 </p>
                 <p className={s.detail}>{p.unused_policy}</p>
               </li>
@@ -112,24 +143,46 @@ export default function PlansPage() {
               <select className={uiStyles.input} value={f.kind} onChange={set("kind")}>
                 <option value="membership">{t("kindMembership")}</option>
                 <option value="bundle">{t("kindBundle")}</option>
+                <option value="credit">{t("kindCredit")}</option>
               </select>
             </label>
             <Field label={t("name")} value={f.name} onChange={set("name")} required minLength={2} maxLength={80} />
           </div>
-          <div className={w.triple}>
-            <Field label={t("price")} inputMode="decimal" value={f.price} onChange={set("price")} required />
-            <Field label={t("credits")} type="number" min={1} max={100} value={f.credits} onChange={set("credits")} />
-            {f.kind === "bundle" ? (
-              <Field label={t("validity")} type="number" min={30} max={1095} value={f.validity_days} onChange={set("validity_days")} />
-            ) : (
-              <Field label={t("notice")} type="number" min={0} max={31} value={f.cancel_notice_days} onChange={set("cancel_notice_days")} />
-            )}
-          </div>
+          {isCredit ? (
+            <>
+              <div className={w.triple}>
+                <Field label={t("pays")} inputMode="decimal" value={f.price} onChange={set("price")} required />
+                <Field label={t("spends")} inputMode="decimal" value={f.value} onChange={set("value")} required />
+                <Field label={t("validity")} type="number" min={365} max={1095} value={f.validity_days} onChange={set("validity_days")} />
+              </div>
+              {bonus !== null && priceCents > 0 && (
+                <Notice tone={bonus > 100 ? "danger" : undefined}>
+                  {bonus > 100
+                    ? t("bonusTooHigh")
+                    : t(bonus > BONUS_WATCH ? "bonusWatch" : "bonusFine", {
+                        percent: bonus,
+                        perEuro: euros(Math.round((priceCents * 100) / valueCents), locale),
+                      })}
+                </Notice>
+              )}
+              {isCredit && valueCents > 0 && valueCents < priceCents && <Notice tone="danger">{t("valueBelowPrice")}</Notice>}
+            </>
+          ) : (
+            <div className={w.triple}>
+              <Field label={t("price")} inputMode="decimal" value={f.price} onChange={set("price")} required />
+              <Field label={t("credits")} type="number" min={1} max={100} value={f.credits} onChange={set("credits")} />
+              {f.kind === "bundle" ? (
+                <Field label={t("validity")} type="number" min={30} max={1095} value={f.validity_days} onChange={set("validity_days")} />
+              ) : (
+                <Field label={t("notice")} type="number" min={0} max={31} value={f.cancel_notice_days} onChange={set("cancel_notice_days")} />
+              )}
+            </div>
+          )}
           <Field label={t("coolingOff")} type="number" min={14} max={60} value={f.cooling_off_days} onChange={set("cooling_off_days")} />
           <p className={uiStyles.label}>{t("termsHeading")}</p>
-          {(["unused_policy", "no_show_policy", "pause_policy"] as const).map((k) => (
+          {(isCredit ? (["unused_policy"] as const) : (["unused_policy", "no_show_policy", "pause_policy"] as const)).map((k) => (
             <label key={k} className={uiStyles.field}>
-              <span className={uiStyles.label}>{t(k === "unused_policy" ? "unused" : k === "no_show_policy" ? "noShow" : "pause")}</span>
+              <span className={uiStyles.label}>{t(k === "unused_policy" ? (isCredit ? "unusedCredit" : "unused") : k === "no_show_policy" ? "noShow" : "pause")}</span>
               <textarea
                 className={s.textarea}
                 value={f[k]}
@@ -137,7 +190,7 @@ export default function PlansPage() {
                 required
                 minLength={10}
                 maxLength={600}
-                placeholder={t(k === "unused_policy" ? "unusedPh" : k === "no_show_policy" ? "noShowPh" : "pausePh")}
+                placeholder={t(k === "unused_policy" ? (isCredit ? "unusedCreditPh" : "unusedPh") : k === "no_show_policy" ? "noShowPh" : "pausePh")}
               />
             </label>
           ))}

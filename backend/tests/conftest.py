@@ -29,6 +29,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.db import reset_engine, session_factory, set_tenant  # noqa: E402
+from app.integrations.payments import FakeProvider  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import (  # noqa: E402
     TENANT_TABLES,
@@ -174,6 +175,7 @@ def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
         "app.services.inbox",
         "app.services.slots",
         "app.services.campaigns",
+        "app.services.balance",
     ):
         monkeypatch.setattr(f"{mod}.utcnow", c)
     return c
@@ -196,3 +198,16 @@ def scan(api: Api, token: str) -> dict:  # type: ignore[type-arg]
     r = api.post("/api/v1/scan", json={"scan_token": token})
     assert r.status_code == 200, r.text
     return r.json()  # type: ignore[no-any-return]
+
+
+@pytest.fixture
+def fake(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeProvider]:
+    """A payment provider that pays when told to; selling switched on."""
+    from app.config import get_settings
+    from app.services import memberships
+
+    p = FakeProvider()
+    memberships.set_provider(p)
+    monkeypatch.setattr(get_settings(), "memberships_enabled", True)
+    yield p
+    memberships.set_provider(None)

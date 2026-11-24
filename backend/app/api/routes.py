@@ -8,7 +8,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, Response, UploadFile
 from fastapi.responses import RedirectResponse, StreamingResponse
-from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator, model_validator
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
@@ -42,6 +42,7 @@ from app.security import hash_password, issue_session, verify_password
 from app.services import (
     DomainError,
     audit,
+    balance,
     campaigns,
     cards,
     inbox,
@@ -253,6 +254,10 @@ def scan(body: ScanIn, ctx: Staff, db: Db) -> dict[str, object]:
         **cards.scan_summary(db, ctx, customer),
         "claimed_offer": slots.pending_claim(db, ctx, customer),
         "membership": memberships.staff_view(db, ctx.business.id, customer.id),
+        "balance": {
+            **balance.summary(db, ctx.business.id, customer.id),
+            "history": balance.history(db, ctx.business.id, customer.id, limit=3),
+        },
         "services": [{"id": str(s.id), "name": s.name} for s in services],
     }
 
@@ -685,14 +690,35 @@ class PlanIn(BaseModel):
     kind: PlanKind
     name: str = Field(min_length=2, max_length=80)
     price_cents: int = Field(ge=100, le=100_000)
-    credits: int = Field(ge=1, le=100)
+    credits: int = Field(default=0, ge=0, le=100)
+    value_cents: int | None = Field(default=None, ge=100, le=200_000)
     validity_days: int | None = Field(default=None, ge=30, le=1095)
     cancel_notice_days: int = Field(default=0, ge=0, le=31)
     cooling_off_days: int = Field(default=14, ge=14, le=60)
     unused_policy: str = Field(min_length=10, max_length=600)
-    no_show_policy: str = Field(min_length=10, max_length=600)
-    pause_policy: str = Field(min_length=10, max_length=600)
+    # Not asked for a balance: it has no visits to miss or pause.
+    no_show_policy: str = Field(default="", max_length=600)
+    pause_policy: str = Field(default="", max_length=600)
     active: bool = True
+
+    @model_validator(mode="after")
+    def _kind_rules(self) -> PlanIn:
+        if self.kind == PlanKind.CREDIT:
+            if self.value_cents is None:
+                raise ValueError("value_required")
+            if not self.price_cents <= self.value_cents <= self.price_cents * 2:
+                raise ValueError("value_between_price_and_double")
+            if self.validity_days is None or self.validity_days < 365:
+                raise ValueError("credit_valid_at_least_a_year")
+            self.credits = 0
+            self.no_show_policy = self.pause_policy = ""
+        else:
+            if self.credits < 1:
+                raise ValueError("credits_required")
+            if len(self.no_show_policy) < 10 or len(self.pause_policy) < 10:
+                raise ValueError("policies_required")
+            self.value_cents = None
+        return self
 
 
 @api.get("/plans")
@@ -779,6 +805,29 @@ class CreditUseIn(BaseModel):
 @api.post("/credits/use")
 def use_credit(body: CreditUseIn, ctx: Staff, db: Db) -> dict[str, object]:
     return memberships.use_at_counter(db, ctx, body.customer_id, body.request_id)
+
+
+class SpendIn(BaseModel):
+    customer_id: uuid.UUID
+    amount_cents: int = Field(ge=1, le=balance.MAX_SPEND_CENTS)
+    request_id: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    note: str | None = Field(default=None, max_length=200)
+
+
+@api.post("/balance/spend")
+def spend_balance(body: SpendIn, ctx: Staff, db: Db) -> dict[str, object]:
+    return balance.spend(db, ctx, body.customer_id, body.amount_cents, body.request_id, body.note)
+
+
+class UndoIn(BaseModel):
+    customer_id: uuid.UUID
+    request_id: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    reason: str = Field(min_length=3, max_length=200)
+
+
+@api.post("/balance/undo")
+def undo_balance(body: UndoIn, ctx: Staff, db: Db) -> dict[str, object]:
+    return balance.undo(db, ctx, body.customer_id, body.request_id, body.reason)
 
 
 # --- Campaigns ------------------------------------------------------------------

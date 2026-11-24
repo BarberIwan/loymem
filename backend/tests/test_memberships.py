@@ -9,7 +9,6 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 
-from app.config import get_settings
 from app.integrations.payments import FakeProvider, Tokens
 from app.models import Business, CreditEvent, Customer, Subscription
 from app.services import Conflict, memberships
@@ -26,15 +25,6 @@ PLAN = {
     "no_show_policy": "Niet komen zonder afmelden kost de credit.",
     "pause_policy": "Pauzeren kan een maand per jaar.",
 }
-
-
-@pytest.fixture
-def fake(monkeypatch: pytest.MonkeyPatch) -> FakeProvider:
-    p = FakeProvider()
-    memberships.set_provider(p)
-    monkeypatch.setattr(get_settings(), "memberships_enabled", True)
-    yield p
-    memberships.set_provider(None)
 
 
 def connect(shop: Shop) -> None:
