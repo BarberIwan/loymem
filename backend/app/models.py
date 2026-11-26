@@ -98,6 +98,12 @@ class Business(Base):
     brand_colour: Mapped[str] = mapped_column(String(7), nullable=False, default="#1F4A38")
     timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="Europe/Amsterdam")
     booking_url: Mapped[str | None] = mapped_column(String(500))
+    # A review request after a visit. Off while the link is empty; the number of
+    # days keeps a regular from being asked every time (0 = every visit).
+    review_url: Mapped[str | None] = mapped_column(String(500))
+    review_request_days: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
     # Retention inbox: how many opportunities a day, how long "ignore" lasts.
     inbox_daily_limit: Mapped[int] = mapped_column(
         SmallInteger, nullable=False, default=10, server_default="10"
@@ -110,6 +116,7 @@ class Business(Base):
     __table_args__ = (
         CheckConstraint("inbox_daily_limit between 1 and 50", name="inbox_daily_limit_range"),
         CheckConstraint("inbox_ignore_days between 1 and 365", name="inbox_ignore_days_range"),
+        CheckConstraint("review_request_days between 0 and 3650", name="review_request_days_range"),
         CheckConstraint("brand_colour ~ '^#[0-9A-Fa-f]{6}$'", name="brand_colour_hex"),
         CheckConstraint("slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="slug_format"),
     )
@@ -331,6 +338,8 @@ class OutboxMessage(Base):
         SmallInteger, nullable=False, default=0, server_default="0"
     )
     last_error: Mapped[str | None] = mapped_column(String(300))
+    # Not before this moment. A review request waits until the visit is over.
+    send_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created()
 

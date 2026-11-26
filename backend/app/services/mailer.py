@@ -20,7 +20,7 @@ import uuid
 from email.message import EmailMessage
 from email.utils import formataddr, make_msgid
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -31,7 +31,7 @@ from app.services.owner import set_consent
 log = logging.getLogger("loymem.mail")
 MAX_ATTEMPTS = 5
 PURPOSE = {"campaign": ConsentPurpose.MARKETING, "slot_offer": ConsentPurpose.SLOT_ALERTS}
-for _kind in ("inbox_due_for_visit", "inbox_reward_unused"):
+for _kind in ("inbox_due_for_visit", "inbox_reward_unused", "review_request"):
     PURPOSE[_kind] = ConsentPurpose.MARKETING
 
 SUBJECTS = {
@@ -40,8 +40,13 @@ SUBJECTS = {
     "campaign": "Bericht van {business}",
     "inbox_due_for_visit": "Bericht van {business}",
     "inbox_reward_unused": "Je beloning staat klaar",
+    "review_request": "Hoe was het bij {business}?",
 }
-LINK_TEXT = {"card_reissue": "Open je kaart", "slot_offer": "Bekijk de plek"}
+LINK_TEXT = {
+    "card_reissue": "Open je kaart",
+    "slot_offer": "Bekijk de plek",
+    "review_request": "Laat een review achter",
+}
 
 
 def unsubscribe_token(customer_id: uuid.UUID, purpose: ConsentPurpose) -> str:
@@ -124,6 +129,7 @@ def send_pending(db: Session, business: Business, limit: int = 100) -> dict[str,
             OutboxMessage.sent_at.is_(None),
             OutboxMessage.channel == "email",
             OutboxMessage.attempts < MAX_ATTEMPTS,
+            or_(OutboxMessage.send_after.is_(None), OutboxMessage.send_after <= utcnow()),
         )
         .order_by(OutboxMessage.created_at)
         .limit(limit)

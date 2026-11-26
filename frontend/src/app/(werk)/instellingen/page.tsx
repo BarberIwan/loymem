@@ -26,6 +26,8 @@ type Settings = {
   slug: string;
   brand_colour: string;
   booking_url: string | null;
+  review_url: string | null;
+  review_request_days: number;
   palette: Palette;
   program_name: string;
   stamps_required: number;
@@ -68,6 +70,7 @@ export default function SettingsPage() {
     try {
       const body: Record<string, unknown> = { ...draft };
       if (body.booking_url === "") body.booking_url = null;
+      if (body.review_url === "") body.review_url = null;
       const d = await api<Settings>("/settings", { method: "PATCH", json: body });
       setData(d);
       setPalette(d.palette);
@@ -142,6 +145,18 @@ export default function SettingsPage() {
                   {common("save")}
                 </Button>
                 {status && <Notice tone={status.tone}>{status.text}</Notice>}
+              </div>
+            </div>
+          </Panel>
+          <Panel title={t("reviewTitle")}>
+            <div className={w.stack}>
+              <p className={w.muted}>{t("reviewHint")}</p>
+              <Field label={t("reviewUrl")} type="url" value={v.review_url ?? ""} onChange={set("review_url")} help={t("reviewUrlHint")} placeholder="https://" />
+              <Field label={t("reviewDays")} type="number" min={0} max={3650} value={v.review_request_days} onChange={set("review_request_days")} help={t("reviewDaysHint")} />
+              <div className={w.actions}>
+                <Button type="button" onClick={save} disabled={Object.keys(draft).length === 0}>
+                  {common("save")}
+                </Button>
               </div>
             </div>
           </Panel>

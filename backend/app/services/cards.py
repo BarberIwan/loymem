@@ -37,7 +37,7 @@ from app.models import (
     utcnow,
 )
 from app.security import digest, new_reward_code, new_secret, normalise_email, normalise_phone
-from app.services import Conflict, DomainError, Forbidden, NotFound, audit, ledger
+from app.services import Conflict, DomainError, Forbidden, NotFound, audit, ledger, reviews
 
 
 @dataclass(frozen=True)
@@ -276,6 +276,8 @@ def record_visit(
     if event is None:
         return {"stamped": False, "reason": "already_stamped_this_period", "stamps": cp.balance}
     rewards = ledger.convert_to_rewards(db, cp, program, event)
+    # One visit, one chance to ask for a review. Does nothing without a review link.
+    reviews.queue_review_request(db, business, customer, at)
     return {
         "stamped": True,
         "event_id": str(event),
