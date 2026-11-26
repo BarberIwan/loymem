@@ -80,3 +80,16 @@ Besteden haalt eerst af van het tegoed dat het eerst vervalt. Een afboeking
 terugdraaien kan één keer, met reden: een manager of de eigenaar altijd, de
 medewerker zelf binnen tien minuten. Verkopen valt onder dezelfde vlag als
 abonnementen (`LOYMEM_MEMBERSHIPS_ENABLED`).
+
+## LM-12 Reviewverzoek na ieder bezoek
+Elk bezoek dat een stempel krijgt, zet één reviewverzoek in de uitgaande
+wachtrij: dezelfde ingang voor de scan aan de balie en voor het boekingssysteem
+dat een bezoek doorgeeft (`cards.record_visit`), dus ook één verzoek per
+periode. Het staat uit tot de zaak zelf een link invult
+(`businesses.review_url`, alleen https); leeg laten is de noodrem. Een verzoek
+is geen noodzakelijk bericht, dus het gaat alleen naar klanten met een
+mailadres en marketingtoestemming, en het draagt dezelfde afmeldlink en
+`List-Unsubscribe` als een campagne (LM-10). `outbox.send_after` houdt het twee
+uur vast, zodat de klant de kassa voorbij is. `review_request_days` is de rust
+tussen twee verzoeken aan dezelfde klant: standaard `0`, dus na ieder bezoek,
+zoals gevraagd; 180 vraagt een vierwekelijkse klant twee keer per jaar.

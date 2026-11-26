@@ -408,13 +408,15 @@ class SettingsIn(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=120)
     brand_colour: str | None = Field(default=None, pattern=HEX)
     booking_url: HttpUrl | None = None
+    review_url: HttpUrl | None = None
+    review_request_days: int | None = Field(default=None, ge=0, le=3650)
     program_name: str | None = Field(default=None, min_length=2, max_length=80)
     stamps_required: int | None = Field(default=None, ge=2, le=30)
     reward_description: str | None = Field(default=None, min_length=2, max_length=120)
     inbox_daily_limit: int | None = Field(default=None, ge=1, le=50)
     inbox_ignore_days: int | None = Field(default=None, ge=1, le=365)
 
-    @field_validator("booking_url")
+    @field_validator("booking_url", "review_url")
     @classmethod
     def https_only(cls, v: HttpUrl | None) -> HttpUrl | None:
         if v is not None and v.scheme != "https":
@@ -434,6 +436,8 @@ def get_settings_route(ctx: Manager, db: Db) -> dict[str, object]:
         "slug": b.slug,
         "brand_colour": b.brand_colour,
         "booking_url": b.booking_url,
+        "review_url": b.review_url,
+        "review_request_days": b.review_request_days,
         "palette": card_palette(b.brand_colour),
         "program_name": p.name,
         "stamps_required": p.stamps_required,
@@ -460,7 +464,7 @@ def update_settings(body: SettingsIn, ctx: Owner, db: Db) -> dict[str, object]:
     p = db.get(Program, cards.active_program(db, b.id).id)
     assert p is not None
     changes = body.model_dump(exclude_unset=True)
-    for field in ("inbox_daily_limit", "inbox_ignore_days"):
+    for field in ("inbox_daily_limit", "inbox_ignore_days", "review_request_days"):
         if field in changes:
             setattr(b, field, changes[field])
     for field in ("name", "brand_colour"):
@@ -468,6 +472,8 @@ def update_settings(body: SettingsIn, ctx: Owner, db: Db) -> dict[str, object]:
             setattr(b, field, changes[field].upper() if field == "brand_colour" else changes[field])
     if "booking_url" in changes:
         b.booking_url = str(body.booking_url) if body.booking_url else None
+    if "review_url" in changes:
+        b.review_url = str(body.review_url) if body.review_url else None
     if "program_name" in changes:
         p.name = changes["program_name"]
     if "stamps_required" in changes:
